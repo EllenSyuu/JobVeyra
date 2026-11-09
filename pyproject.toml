@@ -4,12 +4,31 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jobveyra"
-version = "0.1.0"
+version = "0.1.1"
 description = "A queue-driven job-search engine: discovery, evidence-based scoring, tailored applications, approved submission, analytics and a daily digest."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = ["pyyaml>=6"]
+keywords = ["job search", "job application", "ats", "resume", "ai agent", "claude code"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business",
+]
+
+[project.urls]
+Homepage = "https://github.com/EllenSyuu/JobVeyra"
+Documentation = "https://github.com/EllenSyuu/JobVeyra/blob/main/docs/ARCHITECTURE.md"
+Issues = "https://github.com/EllenSyuu/JobVeyra/issues"
 
 [project.optional-dependencies]
 charts = ["pillow>=10"]
@@ -22,7 +41,7 @@ jobveyra = "jobveyra.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-jobveyra = ["templates/*", "templates/.*", "fonts/*"]
+jobveyra = ["templates/*", "templates/.*", "fonts/*", "dashboard/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

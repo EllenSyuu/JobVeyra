@@ -89,7 +89,11 @@ ACTIONS = {
     "hold": "Answer the pending question, then the job continues",
     "approve": "Approve the batch with `jobveyra approve`",
     "closed": "The posting may be closed: confirm and skip it",
+    "no_link": "No application link found: add one or skip the job",
+    "check_portal": "Check the portal's My Applications page for this job before deciding to resubmit",
 }
+SCOPE_FALLBACK = "the portal"
+DEFAULT_ACTION = "Open the link to see where it stopped, then unblock or skip it"
 FAST_MIN, FULL_MIN = 45, 70
 FULL_LANE_DAILY_CAP = 3
 
@@ -125,9 +129,15 @@ def fold(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 
+# Words dropped from employer names before keying. Extend (never shrink) in an existing workspace:
+# removing a word changes the ids of jobs already in the queue.
+EMPLOYER_STOPWORDS: tuple[str, ...] = ("inc", "ltd", "limited", "llc", "corp", "corporation", "company", "co",
+                                       "group", "groupe", "the", "of", "du", "de", "la", "le")
+
+
 def employer_key(name: str) -> str:
     s = fold(name)
-    s = re.sub(r"\b(inc|ltd|limited|llc|corp|corporation|company|co|group|groupe|the|of|du|de|la|le)\b", " ", s)
+    s = re.sub(r"\b(" + "|".join(map(re.escape, EMPLOYER_STOPWORDS)) + r")\b", " ", s)
     return re.sub(r"\s+", "-", s.strip())[:40] or "unknown"
 
 
@@ -236,7 +246,7 @@ def action_for(reason: str, scope: str = "") -> str:
         code = "auth"
     if code in ("max_attempts", "retries_exhausted"):
         code = "retries_exhausted"
-    return ACTIONS.get(code, "Open the link to see where it stopped, then unblock or skip it").format(scope=scope or "the portal")
+    return ACTIONS.get(code, DEFAULT_ACTION).format(scope=scope or SCOPE_FALLBACK)
 
 
 def backoff_minutes(attempt: int, seed: str = "") -> int:
@@ -440,7 +450,7 @@ class Queue:
         with self.tx() as db:
             if not url:
                 self._set(db, jid, "blocked_technical", "no_apply_url", package=package, reason="no_apply_url",
-                          action="No application link found: add one or skip the job")
+                          action=ACTIONS["no_link"])
                 return "blocked_technical"
             if scope in self.open_auth_scopes() and scope not in signed_in:
                 self._set(db, jid, "blocked_auth", f"auth:{scope}", package=package, reason=f"auth:{scope}",
@@ -510,7 +520,7 @@ class Queue:
     def mark_uncertain(self, jid: str, why: str) -> None:
         with self.tx() as db:
             self._set(db, jid, "needs_check", why, reason=f"uncertain:{why}", lease_until="",
-                      action="Check the portal's My Applications page for this job before deciding to resubmit")
+                      action=ACTIONS["check_portal"])
 
     def fail(self, jid: str, error: str, *, transient: bool = True, error_class: str = "") -> str:
         """A failed attempt BEFORE the submit click. Retryable classes -> retry_wait with jittered
@@ -610,7 +620,7 @@ class Queue:
                 if int(j.get("clicked") or 0):
                     self._set(db, j["id"], "needs_check", "lease expired after submit click",
                               reason="uncertain:interrupted_after_click", lease_until="",
-                              action="Check the portal's My Applications page for this job before deciding to resubmit")
+                              action=ACTIONS["check_portal"])
                     out["uncertain"].append(j["id"])
                 else:
                     self._set(db, j["id"], "ready_to_submit", "lease expired before submit", lease_until="")
