@@ -1,0 +1,41 @@
+{
+ "offers": [
+  {
+   "id": 1550001,
+   "slug": "data-scientist",
+   "title": "Data Scientist",
+   "status": "published",
+   "description": "<p>Vandelay imports forecasting.</p>",
+   "requirements": "<ul><li>Time series</li></ul>",
+   "location": "Lisbon, Portugal",
+   "city": "Lisbon",
+   "country": "Portugal",
+   "country_code": "PT",
+   "remote": false,
+   "hybrid": true,
+   "on_site": false,
+   "employment_type_code": "fulltime",
+   "experience_code": "mid_level",
+   "careers_url": "https://vandelay.recruitee.com/o/data-scientist",
+   "careers_apply_url": "https://vandelay.recruitee.com/o/data-scientist/c/new",
+   "published_at": "2026-10-25 09:00:00 UTC",
+   "created_at": "2026-10-24 16:00:00 UTC",
+   "close_at": "2026-12-15 23:59:00 UTC",
+   "company_name": "Vandelay Industries",
+   "department": "Data",
+   "salary": {
+    "min": "50000",
+    "max": "65000",
+    "currency": "eur",
+    "period": "year"
+   }
+  },
+  {
+   "id": 1550002,
+   "slug": "draft",
+   "title": "Draft Role",
+   "status": "draft",
+   "location": "Lisbon"
+  }
+ ]
+}

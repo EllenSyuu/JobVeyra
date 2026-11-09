@@ -1,0 +1,11 @@
+{
+  "name": "jobveyra",
+  "owner": { "name": "JobVeyra contributors" },
+  "plugins": [
+    {
+      "name": "jobveyra",
+      "source": "./integrations/claude-code",
+      "description": "Run a job search with the JobVeyra engine: discover, evaluate, prepare, approve, submit and review."
+    }
+  ]
+}

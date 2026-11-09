@@ -1,0 +1,15 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+# Never commit a real workspace: your data belongs outside this repository.
+jobveyra.yml
+!examples/jobveyra.yml
+!src/jobveyra/templates/jobveyra.yml
+state/
+postings/
+packages/
+reports/
+stories/

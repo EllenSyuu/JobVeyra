@@ -1,0 +1,37 @@
+{
+ "status": 200,
+ "data": {
+  "count": 2,
+  "list": [
+   {
+    "jobId": 245001,
+    "postingTitle": "Statistician",
+    "jobLevel": "P-3",
+    "dutyStation": [
+     {
+      "code": "NY",
+      "description": "NEW YORK"
+     }
+    ],
+    "startDate": "2026-10-15T00:00:00",
+    "endDate": "2026-12-01T23:59:59",
+    "departmentDescr": "Example Statistics Division",
+    "jobFamily": "Statistics",
+    "jobNetwork": "Economic, Social and Development"
+   },
+   {
+    "jobId": 245002,
+    "postingTitle": "Associate Statistician",
+    "jobLevel": "P-2",
+    "dutyStation": [
+     {
+      "description": "GENEVA"
+     }
+    ],
+    "startDate": "2026-10-20T00:00:00",
+    "endDate": "2026-11-30T23:59:59",
+    "departmentDescr": "Example Economic Commission"
+   }
+  ]
+ }
+}

@@ -1,0 +1,70 @@
+{
+ "LanguageCode": "EN",
+ "SearchResult": {
+  "SearchResultCount": 1,
+  "SearchResultCountAll": 1,
+  "SearchResultItems": [
+   {
+    "MatchedObjectId": "800100",
+    "MatchedObjectDescriptor": {
+     "PositionID": "FEA-26-0101",
+     "PositionTitle": "Mathematical Statistician",
+     "PositionURI": "https://www.usajobs.gov/job/800100",
+     "ApplyURI": [
+      "https://www.usajobs.gov/job/800100/apply"
+     ],
+     "PositionLocationDisplay": "Washington, District of Columbia",
+     "PositionLocation": [
+      {
+       "LocationName": "Washington, District of Columbia"
+      }
+     ],
+     "OrganizationName": "Federal Example Agency",
+     "DepartmentName": "Department of Examples",
+     "JobGrade": [
+      {
+       "Code": "GS"
+      }
+     ],
+     "PositionSchedule": [
+      {
+       "Name": "Full-time",
+       "Code": "1"
+      }
+     ],
+     "PositionOfferingType": [
+      {
+       "Name": "Permanent",
+       "Code": "15317"
+      }
+     ],
+     "QualificationSummary": "Degree in mathematics or statistics with 24 semester hours of math.",
+     "PositionRemuneration": [
+      {
+       "MinimumRange": "86962.0",
+       "MaximumRange": "113047.0",
+       "RateIntervalCode": "PA",
+       "Description": "Per Year"
+      }
+     ],
+     "PublicationStartDate": "2026-10-30T00:00:00.0000",
+     "ApplicationCloseDate": "2026-11-20T23:59:59.9970",
+     "UserArea": {
+      "Details": {
+       "JobSummary": "Design sample surveys for national indicators.",
+       "MajorDuties": [
+        "Design survey samples",
+        "Estimate variance"
+       ],
+       "RemoteIndicator": false
+      }
+     }
+    }
+   }
+  ],
+  "UserArea": {
+   "NumberOfPages": "1",
+   "IsRadialSearch": false
+  }
+ }
+}

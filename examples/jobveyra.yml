@@ -1,0 +1,77 @@
+# JobVeyra configuration. Copy to your workspace as jobveyra.yml (or run `jobveyra init`).
+# Everything here is an example for a fictional candidate; replace it with your own.
+
+candidate:
+  name: Alex Rivera
+  email: alex.rivera@example.com
+  location: Lisbon, Portugal
+  links: [https://github.com/example, https://linkedin.com/in/example]
+  languages: {en: C2, pt: native, es: B2}
+  work_authorization: [EU]          # where you may work without sponsorship (country or bloc codes)
+  needs_sponsorship: false
+  master_cv: cv/master.md           # the fact base: nothing may appear in a document unless it is here
+  facts: cv/facts.yml               # optional extra verified facts (numbers, dates, awards)
+
+focus:
+  # Where to look, in order of preference. A posting matches a region when its location
+  # contains one of the `match` strings; weight ranks regions against each other.
+  regions:
+    - {name: Lisbon, match: [lisbon, lisboa, portugal], weight: 1.0}
+    - {name: Madrid, match: [madrid], weight: 0.8}
+    - {name: Remote Europe, match: [remote - europe, emea, europe], weight: 0.7}
+  remote: allow                     # allow | only | exclude
+  tracks:                           # role families; each can carry its own CV variant
+    - key: ds
+      label: Data science
+      titles: [data scientist, machine learning, applied scientist]
+      skills: [python, sql, statistics, experimentation, forecasting]
+      cv: cv/data-science.md
+    - key: analytics
+      label: Analytics
+      titles: [data analyst, analytics, business intelligence]
+      skills: [sql, dashboards, python, stakeholder communication]
+      cv: cv/analytics.md
+  seniority_min: junior
+  seniority_max: senior
+  exclude_titles: [unpaid, volunteer, intern]
+  employment: [full_time]
+  salary_floor: 40000
+  salary_currency: EUR
+  languages_ok: [en, pt, es]
+  flagship_employers: [European Central Bank, Banco de Portugal, Example Labs]
+  avoid_employers: []
+
+policy:
+  submission: batch_approve         # batch_approve: one review page approves a batch, then it submits
+                                    # auto: submits every job that passes the gates
+                                    # fill_only: fills forms and stops before Submit
+  batch_size: 25
+  approval_ttl_hours: 24
+  max_per_day: 30
+  exclude_below: 45                 # fit below this is excluded
+  full_package_at: 70               # flagship employers at or above this get the full tailored package
+  min_sources: 3                    # a round must try at least this many distinct sources
+  max_source_share: 0.6             # warn when one source supplies more than this share of submissions
+  follow_up_days: 10
+
+sources:
+  - {type: greenhouse, board: examplelabs}
+  - {type: lever, board: example}
+  - {type: ashby, board: example}
+  - {type: workable, board: example}
+  - {type: smartrecruiters, board: Example}
+  - {type: recruitee, board: example}
+  - {type: un_careers, keywords: [data, statistics]}
+  - {type: remotive, category: data}
+
+notify:
+  email_enabled: false              # SMTP settings come from environment variables (see docs/NOTIFY.md)
+  telegram_enabled: false
+  webhook_env: JOBVEYRA_WEBHOOK     # Slack, Discord or Teams incoming-webhook URL, read from this variable
+
+llm:
+  provider: none                    # none | anthropic | openai | ollama | openai_compatible
+  model: ""
+  base_url: ""
+  api_key_env: ""
+  anonymize: true                   # mask name, email, phone and links before any model call

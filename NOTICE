@@ -1,0 +1,7 @@
+JobVeyra includes code adapted from ai-job-search
+(https://github.com/ai-job-search-dev/ai-job-search), MIT License,
+Copyright (c) 2026 Mads Lorentzen:
+
+  src/jobveyra/posting_guard.py
+  src/jobveyra/page_decode.py
+  src/jobveyra/robots_check.py

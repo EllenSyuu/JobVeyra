@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobveyra"
+version = "0.1.0"
+description = "A queue-driven job-search engine: discovery, evidence-based scoring, tailored applications, approved submission, analytics and a daily digest."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["pyyaml>=6"]
+
+[project.optional-dependencies]
+charts = ["pillow>=10"]
+dev = ["pytest>=8", "pillow>=10"]
+
+[project.scripts]
+jobveyra = "jobveyra.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jobveyra = ["templates/*", "templates/.*", "fonts/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

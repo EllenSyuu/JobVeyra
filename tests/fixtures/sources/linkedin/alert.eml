@@ -1,0 +1,87 @@
+From: Job alerts <jobalerts-noreply@example.invalid>
+To: alex.rivera@example.com
+Subject: 3 new jobs for data scientist
+Date: Mon, 02 Nov 2026 08:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============9087074067683613217=="
+
+--===============9087074067683613217==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Your job alert for data scientist in Lisbon
+3 new jobs match your preferences.
+
+Data Scientist
+Example Labs
+Lisbon, Portugal (Hybrid)
+View job: https://www.linkedin.com/comm/jobs/view/3901234567/?trackingId=3Dab=
+c%3D%3D&refId=3Dxyz
+
+---------------------------------------------------------
+
+Senior Data Analyst
+Globex =C2=B7 Portugal (Remote)
+View job: https://www.linkedin.com/comm/jobs/view/3907654321/?trackingId=3Ddef
+
+---------------------------------------------------------
+
+Machine Learning Engineer
+Initech
+Madrid, Spain
+1 week ago
+View job: https://www.linkedin.com/comm/jobs/view/3900000001/?trackingId=3Dghi
+
+---------------------------------------------------------
+
+See all jobs: https://www.linkedin.com/comm/jobs/search/?keywords=3Ddata%20sc=
+ientist
+Unsubscribe: https://www.linkedin.com/comm/psettings/email-unsubscribe
+
+--===============9087074067683613217==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><head><style>.x{color:#000}</style></head><body>
+<table role=3D"presentation"><tr><td>
+<p>Your job alert for <b>data scientist</b> in Lisbon</p>
+<p>3 new jobs match your preferences.</p>
+</td></tr>
+<tr><td>
+  <a href=3D"https://www.linkedin.com/comm/jobs/view/3901234567/?trackingId=
+=3Dabc%3D%3D&amp;refId=3Dxyz&amp;lipi=3Durn"><img src=3D"https://media.exampl=
+e.invalid/logo1.png" alt=3D"Example Labs"></a>
+</td><td>
+  <a href=3D"https://www.linkedin.com/comm/jobs/view/3901234567/?trackingId=
+=3Dabc%3D%3D&amp;refId=3Dxyz" style=3D"font-weight:600">Data Scientist</a>
+  <p>Example Labs &middot; Lisbon, Portugal (Hybrid)</p>
+  <p>Actively recruiting</p>
+  <p>2 connections</p>
+</td></tr>
+<tr><td>
+  <a href=3D"https://www.linkedin.com/comm/jobs/view/3907654321/?trackingId=
+=3Ddef"><img src=3D"https://media.example.invalid/logo2.png" alt=3D"Globex"><=
+/a>
+</td><td>
+  <a href=3D"https://www.linkedin.com/comm/jobs/view/3907654321/?trackingId=
+=3Ddef">Senior Data Analyst</a>
+  <p>Globex &middot; Portugal (Remote)</p>
+  <p>Be an early applicant</p>
+</td></tr>
+<tr><td>
+  <a href=3D"https://www.linkedin.com/comm/jobs/view/3900000001/?trackingId=
+=3Dghi">Machine Learning Engineer</a>
+  <p>Initech</p>
+  <p>Madrid, Spain</p>
+  <p>1 week ago</p>
+</td></tr>
+<tr><td><a href=3D"https://www.linkedin.com/comm/jobs/search/?keywords=3Ddata=
+%20scientist">See all jobs</a></td></tr>
+<tr><td><a href=3D"https://www.linkedin.com/comm/psettings/email-unsubscribe"=
+>Unsubscribe</a> &middot; <a href=3D"https://www.linkedin.com/help/">Help</a>=
+</td></tr>
+</table></body></html>
+
+--===============9087074067683613217==--

@@ -1,0 +1,67 @@
+{
+ "apiVersion": "1",
+ "jobs": [
+  {
+   "id": "5f0c1e2d-1111-4222-8333-444455556666",
+   "title": "Applied Scientist",
+   "location": "Lisbon",
+   "secondaryLocations": [
+    {
+     "location": "Porto"
+    }
+   ],
+   "department": "Research",
+   "team": "Forecasting",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "employmentType": "FullTime",
+   "publishedAt": "2026-10-22T10:00:00.000+00:00",
+   "jobUrl": "https://jobs.ashbyhq.com/initech/5f0c1e2d-1111-4222-8333-444455556666",
+   "applyUrl": "https://jobs.ashbyhq.com/initech/5f0c1e2d-1111-4222-8333-444455556666/application",
+   "descriptionHtml": "<p>Research forecasting methods for retail demand.</p>",
+   "descriptionPlain": "Research forecasting methods for retail demand.",
+   "address": {
+    "postalAddress": {
+     "addressLocality": "Lisbon",
+     "addressCountry": "Portugal"
+    }
+   },
+   "compensation": {
+    "compensationTierSummary": "€60K – €80K",
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": 60000,
+      "maxValue": 80000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "minValue": 0.01,
+      "maxValue": 0.05
+     }
+    ]
+   }
+  },
+  {
+   "id": "5f0c1e2d-1111-4222-8333-444455550000",
+   "title": "Hidden Role",
+   "location": "Lisbon",
+   "isListed": false,
+   "jobUrl": "https://jobs.ashbyhq.com/initech/5f0c1e2d-1111-4222-8333-444455550000"
+  },
+  {
+   "id": "5f0c1e2d-1111-4222-8333-444455557777",
+   "title": "Data Engineer",
+   "location": "Lisbon",
+   "isListed": true,
+   "employmentType": "Contract",
+   "workplaceType": "Hybrid",
+   "publishedAt": "2026-10-25T10:00:00.000+00:00",
+   "jobUrl": "https://jobs.ashbyhq.com/initech/5f0c1e2d-1111-4222-8333-444455557777",
+   "descriptionPlain": "Six-month contract."
+  }
+ ]
+}

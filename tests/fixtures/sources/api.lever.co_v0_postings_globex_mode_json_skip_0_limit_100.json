@@ -1,0 +1,43 @@
+[
+ {
+  "id": "a1b2c3d4-0000-4000-8000-000000000001",
+  "text": "Data Analyst",
+  "hostedUrl": "https://jobs.lever.co/globex/a1b2c3d4-0000-4000-8000-000000000001",
+  "applyUrl": "https://jobs.lever.co/globex/a1b2c3d4-0000-4000-8000-000000000001/apply",
+  "categories": {
+   "location": "Madrid, Spain",
+   "commitment": "Full-time",
+   "team": "Analytics",
+   "department": "Finance"
+  },
+  "workplaceType": "hybrid",
+  "country": "ES",
+  "createdAt": 1793145600000,
+  "descriptionPlain": "Globex is looking for a data analyst to own our revenue dashboards.",
+  "lists": [
+   {
+    "text": "Requirements",
+    "content": "<li>SQL and Python</li><li>Clear written communication</li>"
+   }
+  ],
+  "additionalPlain": "Hybrid: three days a week in our Madrid office.",
+  "salaryRange": {
+   "min": 42000,
+   "max": 52000,
+   "currency": "EUR",
+   "interval": "per-year-salary"
+  }
+ },
+ {
+  "id": "a1b2c3d4-0000-4000-8000-000000000002",
+  "text": "Analytics Intern",
+  "hostedUrl": "https://jobs.lever.co/globex/a1b2c3d4-0000-4000-8000-000000000002",
+  "categories": {
+   "location": "Madrid, Spain",
+   "commitment": "Internship"
+  },
+  "workplaceType": "onsite",
+  "createdAt": 1793145600000,
+  "descriptionPlain": "Six-month internship."
+ }
+]

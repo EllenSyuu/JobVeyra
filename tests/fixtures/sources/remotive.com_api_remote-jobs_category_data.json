@@ -1,0 +1,45 @@
+{
+ "job-count": 3,
+ "jobs": [
+  {
+   "id": 1900001,
+   "url": "https://remotive.com/remote-jobs/data/senior-data-engineer-1900001",
+   "title": "Senior Data Engineer",
+   "company_name": "Globex",
+   "category": "Data",
+   "tags": [
+    "python",
+    "spark"
+   ],
+   "job_type": "full_time",
+   "publication_date": "2026-10-28T10:12:44",
+   "candidate_required_location": "Europe",
+   "salary": "$90k - $120k",
+   "description": "<p>Own our <b>lakehouse</b> pipelines.</p>"
+  },
+  {
+   "id": 1900002,
+   "url": "https://remotive.com/remote-jobs/data/data-analyst-1900002",
+   "title": "Data Analyst",
+   "company_name": "Soylent",
+   "category": "Data",
+   "job_type": "contract",
+   "publication_date": "2026-10-29T08:00:00",
+   "candidate_required_location": "USA Only",
+   "salary": "",
+   "description": "<p>Contract analyst.</p>"
+  },
+  {
+   "id": 1900003,
+   "url": "https://remotive.com/remote-jobs/data/ml-consultant-1900003",
+   "title": "Machine Learning Consultant",
+   "company_name": "Acme Robotics",
+   "category": "Data",
+   "job_type": "freelance",
+   "publication_date": "2026-10-29T08:00:00",
+   "candidate_required_location": "Worldwide",
+   "salary": "€500/day",
+   "description": ""
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+ "name": "Umbrella Analytics",
+ "description": "Analytics consultancy.",
+ "jobs": [
+  {
+   "title": "Business Intelligence Analyst",
+   "shortcode": "AB12CD34EF",
+   "code": "BI-07",
+   "employment_type": "Full-time",
+   "telecommuting": false,
+   "department": "Delivery",
+   "url": "https://apply.workable.com/umbrella-analytics/j/AB12CD34EF/",
+   "shortlink": "https://apply.workable.com/j/AB12CD34EF",
+   "application_url": "https://apply.workable.com/umbrella-analytics/j/AB12CD34EF/apply/",
+   "published_on": "2026-10-27",
+   "created_at": "2026-10-26",
+   "country": "Portugal",
+   "city": "Porto",
+   "state": "Porto",
+   "locations": [
+    {
+     "country": "Portugal",
+     "countryCode": "PT",
+     "city": "Porto",
+     "region": "Porto",
+     "hidden": false
+    }
+   ],
+   "experience": "Mid-Senior level",
+   "function": "Analyst",
+   "industry": "Information Services",
+   "description": "<p>Build dashboards for clients.</p><ul><li>Power BI</li><li>SQL</li></ul>"
+  },
+  {
+   "title": "Remote Data Analyst",
+   "shortcode": "ZX98YW76VU",
+   "employment_type": "Part-time",
+   "telecommuting": true,
+   "url": "https://apply.workable.com/umbrella-analytics/j/ZX98YW76VU/",
+   "published_on": "2026-10-28",
+   "country": "Portugal",
+   "city": "",
+   "locations": [],
+   "description": "<p>Part-time, remote.</p>"
+  }
+ ]
+}

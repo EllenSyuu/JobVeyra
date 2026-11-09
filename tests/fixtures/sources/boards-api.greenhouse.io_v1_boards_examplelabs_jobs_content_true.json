@@ -1,0 +1,73 @@
+{
+ "jobs": [
+  {
+   "id": 4012345,
+   "title": "Data Scientist",
+   "absolute_url": "https://boards.greenhouse.io/examplelabs/jobs/4012345",
+   "location": {
+    "name": "Lisbon, Portugal"
+   },
+   "company_name": "Example Labs",
+   "requisition_id": "DS-2026-014",
+   "first_published": "2026-10-20T09:15:00-04:00",
+   "updated_at": "2026-10-28T11:00:00-04:00",
+   "language": "en",
+   "metadata": [
+    {
+     "id": 1,
+     "name": "Employment Type",
+     "value": "Full-time"
+    }
+   ],
+   "departments": [
+    {
+     "id": 7,
+     "name": "Data"
+    }
+   ],
+   "offices": [
+    {
+     "id": 3,
+     "name": "Lisbon"
+    }
+   ],
+   "pay_input_ranges": [
+    {
+     "min_cents": 5500000,
+     "max_cents": 7000000,
+     "currency_type": "EUR",
+     "title": "Base"
+    }
+   ],
+   "content": "&lt;p&gt;Example Labs builds forecasting tools for &lt;strong&gt;energy grids&lt;/strong&gt;.&lt;/p&gt;&lt;h3&gt;What you will do&lt;/h3&gt;&lt;ul&gt;&lt;li&gt;Build demand forecasting models in Python&lt;/li&gt;&lt;li&gt;Design experiments with product teams&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Salary: &amp;euro;55,000 &amp;ndash; &amp;euro;70,000&lt;/p&gt;"
+  },
+  {
+   "id": 4012346,
+   "title": "Senior Machine Learning Engineer",
+   "absolute_url": "https://boards.greenhouse.io/examplelabs/jobs/4012346",
+   "location": {
+    "name": "Remote - Europe"
+   },
+   "company_name": "Example Labs",
+   "updated_at": "2026-10-30T08:00:00-04:00",
+   "metadata": [],
+   "departments": [],
+   "offices": [],
+   "content": "&lt;p&gt;Ship machine learning systems that schedule battery storage.&lt;/p&gt;"
+  },
+  {
+   "id": 4012347,
+   "title": "Director of Analytics",
+   "absolute_url": "https://boards.greenhouse.io/examplelabs/jobs/4012347",
+   "location": {
+    "name": "Lisbon, Portugal"
+   },
+   "company_name": "Example Labs",
+   "updated_at": "2026-10-30T08:00:00-04:00",
+   "content": "&lt;p&gt;Lead the analytics group.&lt;/p&gt;"
+  }
+ ],
+ "meta": {
+  "total": 3
+ }
+}

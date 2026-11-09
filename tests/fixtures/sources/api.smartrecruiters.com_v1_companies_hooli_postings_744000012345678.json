@@ -1,0 +1,26 @@
+{
+ "id": "744000012345678",
+ "name": "Quantitative Analyst",
+ "postingUrl": "https://jobs.smartrecruiters.com/Hooli/744000012345678-quantitative-analyst",
+ "applyUrl": "https://jobs.smartrecruiters.com/Hooli/744000012345678-quantitative-analyst?oga=true",
+ "jobAd": {
+  "sections": {
+   "companyDescription": {
+    "title": "Company Description",
+    "text": "<p>Hooli runs payment infrastructure.</p>"
+   },
+   "jobDescription": {
+    "title": "Job Description",
+    "text": "<p>Model credit risk and validate <b>PD/LGD</b> models.</p>"
+   },
+   "qualifications": {
+    "title": "Qualifications",
+    "text": "<ul><li>Statistics degree</li><li>Python or R</li></ul>"
+   },
+   "additionalInformation": {
+    "title": "Additional Information",
+    "text": ""
+   }
+  }
+ }
+}
