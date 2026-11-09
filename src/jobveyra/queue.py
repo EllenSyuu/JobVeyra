@@ -32,7 +32,11 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
-import fcntl
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+    import msvcrt
 import hashlib
 import json
 import os
@@ -256,6 +260,28 @@ def backoff_minutes(attempt: int, seed: str = "") -> int:
     return max(1, int(round(base * (1 + rnd))))
 
 
+def _lock(fh) -> None:
+    """Exclusive, blocking lock on an open file (flock on POSIX, msvcrt on Windows)."""
+    if fcntl is not None:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        return
+    fh.seek(0)
+    while True:
+        try:
+            msvcrt.locking(fh.fileno(), msvcrt.LK_LOCK, 1)
+            return
+        except OSError:  # LK_LOCK gives up after ~10 s; keep waiting
+            continue
+
+
+def _unlock(fh) -> None:
+    if fcntl is not None:
+        fcntl.flock(fh, fcntl.LOCK_UN)
+        return
+    fh.seek(0)
+    msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
+
+
 class Queue:
     def __init__(self, state_dir: Path | str | None = None):
         self.dir = Path(state_dir or STATE_DIR or paths.state_dir())
@@ -327,8 +353,8 @@ class Queue:
     def tx(self):
         """One transaction = exclusive file lock + reload + apply + checkpoint. Rolled back (and
         nothing written) on any exception. The lock makes claim() atomic across processes."""
-        with self.lockfile.open("a") as lk:
-            fcntl.flock(lk, fcntl.LOCK_EX)
+        with self.lockfile.open("a+") as lk:
+            _lock(lk)
             try:
                 self.refresh()
                 self.db.execute("BEGIN IMMEDIATE")
@@ -340,7 +366,7 @@ class Queue:
                     raise
                 self._checkpoint()
             finally:
-                fcntl.flock(lk, fcntl.LOCK_UN)
+                _unlock(lk)
 
     # reads ---------------------------------------------------------
     def get(self, jid: str) -> dict | None:
