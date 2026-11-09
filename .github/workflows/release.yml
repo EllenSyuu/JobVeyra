@@ -1,7 +1,7 @@
 # Publish to PyPI when a version tag (v0.1.0, v0.2.0 ...) is pushed.
 # Uses PyPI Trusted Publishing: no API token is stored anywhere. One-time setup on pypi.org:
 # Account settings -> Publishing -> Add a pending publisher with
-#   project name jobveyra, owner EllenSyuu, repository JobVeyra, workflow release.yml, environment pypi
+#   project name jobveyra, repository EllenSyuu/JobVeyra, workflow release.yml, environment pypi
 name: release
 
 on:
