@@ -1,0 +1,54 @@
+# A CV base for one track. Copy it per track (cv/data-science.yml) and per language
+# (cv/data-science.fr.yml); point focus.tracks[].cv at the English or default one.
+# `jobveyra tailor <job>` copies the right base into the job's package for you to adapt.
+#
+# Every number, date, employer and degree here must also be in your fact base (cv/master.md):
+# `jobveyra build` rejects anything that is not.
+#
+# Text may use **bold** and *italic*. Write date ranges with a plain hyphen; the template
+# spaces them the way ATS date parsers read.
+
+lang: en
+
+# header: defaults come from `candidate` in jobveyra.yml; override any field here.
+# header:
+#   city: Lisbon, Portugal
+#   links: [linkedin.com/in/you, github.com/you]
+
+order: [experience, education, projects, publications, skills, awards]
+
+experience:
+  - org: Example Labs
+    title: Data Scientist
+    city: Lisbon
+    start: Jan 2023
+    end: Present
+    bullets:
+      - Built a weekly demand forecast for 1,200 stores that cut stock-outs by 18%.
+      - Designed and analysed 40 pricing experiments with the product team.
+  - org: Example University
+    title: Research Assistant
+    city: Lisbon
+    start: Sep 2021
+    end: Dec 2022
+    bullets:
+      - Wrote an open-source package for survival models, used in 3 published studies.
+
+education:
+  - org: Example University
+    title: M.Sc. Statistics
+    city: Lisbon
+    start: Sep 2020
+    end: Jul 2022
+    bullets:
+      - "Thesis: forecasting intermittent demand with hierarchical models."
+
+projects: []
+publications: []
+
+skills:
+  - {label: Methods, items: "forecasting, experimentation, survival analysis, causal inference"}
+  - {label: Programming, items: "Python, SQL, R, Git"}
+  - {label: Languages, items: "English (C2), Portuguese (native), Spanish (B2)"}
+
+awards: []

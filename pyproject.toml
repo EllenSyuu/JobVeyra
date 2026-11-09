@@ -32,7 +32,9 @@ Issues = "https://github.com/EllenSyuu/JobVeyra/issues"
 
 [project.optional-dependencies]
 charts = ["pillow>=10"]
-dev = ["pytest>=8", "pillow>=10"]
+pdf = ["pypdf>=4"]
+all = ["pillow>=10", "pypdf>=4"]
+dev = ["pytest>=8", "pillow>=10", "pypdf>=4"]
 
 [project.scripts]
 jobveyra = "jobveyra.cli:main"

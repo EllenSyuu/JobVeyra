@@ -16,8 +16,13 @@ read pages, fill forms and report back.
 
 1. `jobveyra recover` (always first: returns expired leases to the queue).
 2. `jobveyra discover` then `jobveyra evaluate --all`.
-3. Build materials for jobs in `eligible` from the candidate's CVs in `cv/`. Never invent a
-   fact; run `jobveyra check-materials <package dir>` and fix every finding before use.
+3. For each job in `eligible`: `jobveyra tailor <id>` writes `packages/<id>/` with the track's
+   CV base (`cv.yml`) in the posting's language, a letter skeleton (`letter.md`) and a brief.
+   Adapt `cv.yml` and write `letter.md` from the fact base only: mirror the brief's keywords
+   where the fact base supports them, and leave its "not shown" requirements out of both
+   documents. Then `jobveyra build <id>`; fix every FAIL line and build again. A PASS moves the
+   job to `ready_to_submit`. WARN lines (an absent keyword, letter length) are for judgement,
+   never a reason to add a claim.
 4. If `policy.submission` is `batch_approve`, run `jobveyra review` and stop until the
    candidate runs `jobveyra approve <batch>`.
 5. `jobveyra next` leases one job and prints its task card. Follow the card's rules.

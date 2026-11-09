@@ -25,12 +25,12 @@ focus:
       label: Data science
       titles: [data scientist, machine learning, applied scientist]
       skills: [python, sql, statistics, experimentation, forecasting]
-      cv: cv/data-science.md
+      cv: cv/example.yml           # CV base for this track (YAML; cv/example.yml shows the format)
     - key: analytics
       label: Analytics
       titles: [data analyst, analytics, business intelligence]
       skills: [sql, dashboards, python, stakeholder communication]
-      cv: cv/analytics.md
+      cv: cv/example.yml
   seniority_min: junior
   seniority_max: senior
   exclude_titles: [unpaid, volunteer, intern]
@@ -63,6 +63,16 @@ sources:
   - {type: recruitee, board: example}
   - {type: un_careers, keywords: [data, statistics]}
   - {type: remotive, category: data}
+
+materials:
+  languages: [en]                   # document languages; a posting in one of them gets documents in it,
+                                    # otherwise the first. Add a base per language as cv/<name>.<lang>.yml
+  paper: letter                     # letter | a4
+  cv_pages: 1
+  letter_pages: 1
+  letter_words: [250, 330]
+  engine: auto                      # auto | lualatex | xelatex (TeX Live or MiKTeX)
+  font: auto                        # auto picks XCharter, TeX Gyre or Latin Modern; or name any installed font
 
 notify:
   email_enabled: false              # SMTP settings come from environment variables (see docs/NOTIFY.md)

@@ -13,6 +13,8 @@ evaluate/        legitimacy (liveness, repost, ghost signals)
                  -> Evaluation; queue.screen(fit) sets the lane
 materials/       fabrication guard, outbound guard, ATS text check,
                  cover-letter angles
+documents/       CV and letter content (YAML, Markdown), LaTeX rendering,
+                 compile, PDF text-layer and layout checks, per-job package
 approvals.py     batch review page and approval tokens
 worker.py        lease, package, clicked, done, uncertain, fail
 analytics/       funnel, patterns, calibration, skill demand
@@ -76,6 +78,19 @@ data or a `Config` (see `config.py`) and returns plain data; none of them prints
 - `ats.py`: `check_text(text: str, keywords: list[str]) -> dict` for coverage, missing
   contact details and extraction noise.
 - `cover.py`: `angles(p: Posting, cfg) -> dict` for why-this-company, problems, approach, tone.
+
+### Documents (`jobveyra/documents/`)
+
+- `content.py`: `load_cv(path, defaults) -> CV`, `cv_variant(base, lang) -> Path`,
+  `parse_letter(text) -> Letter`; section titles, salutations, closings and dates for en, fr, es,
+  pt, de, it.
+- `latex.py`: `render_cv(cv, paper, font) -> str`, `render_letter(letter, header, paper, today, font)`;
+  kerning off, literal contact text, ASCII date ranges, no hyphenation in letters.
+- `build.py`: `compile_tex(tex, engine) -> Path` (lualatex, then xelatex);
+  `check_pdf(pdf, pages, contains, keywords) -> (results, text)`.
+- `pdfcheck.py`, `layout.py`: text-layer extraction and page-geometry checks (from upstream).
+- `package.py`: `choose_language(cfg, posting)`, `tailor(cfg, job_id)`, `build(cfg, job_id, mark=)`.
+  Each check is `{"check", "ok": True|False|None, "detail"}`; None is a warning or a skipped tool.
 
 ### Approvals (`jobveyra/approvals.py`)
 

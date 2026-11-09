@@ -75,6 +75,9 @@ def cmd_init(a) -> int:
     master = ws / "cv" / "master.md"
     if not master.exists():
         shutil.copyfile(TEMPLATES / "master.md", master)
+    example_cv = ws / "cv" / "example.yml"
+    if not example_cv.exists():
+        shutil.copyfile(TEMPLATES / "cv.yml", example_cv)
     for name in ("AGENTS.md",):          # agent rules where Codex, OpenCode, Cursor and Gemini look
         if not (ws / name).exists():
             shutil.copyfile(TEMPLATES / name, ws / name)
@@ -111,6 +114,23 @@ def cmd_doctor(a) -> int:
     for s in cfg.sources:
         if s["type"] not in base.REGISTRY:
             problems.append(f"unknown source type {s['type']!r}; known: {', '.join(sorted(base.REGISTRY))}")
+    from .documents import build as docbuild
+    if not docbuild.find_engine(cfg.materials.engine):
+        notes.append("no LaTeX engine (lualatex/xelatex): `jobveyra build` cannot make PDFs; install TeX Live or MiKTeX")
+    if not shutil.which("pdftotext"):
+        notes.append("Poppler (pdftotext) not found: the PDF layout check is skipped")
+    try:
+        import pypdf  # noqa: F401
+    except ImportError:
+        if not shutil.which("pdftotext"):
+            notes.append("neither pypdf nor pdftotext: PDF text checks are skipped (pip install pypdf)")
+    for t in cfg.focus.tracks:
+        if t.cv and cfg.path(t.cv).is_file() and cfg.path(t.cv).suffix.lower() in (".yml", ".yaml"):
+            from .documents.content import ContentError, load_cv
+            try:
+                load_cv(cfg.path(t.cv))
+            except ContentError as e:
+                problems.append(f"track {t.key}: {e}")
     try:
         import PIL  # noqa: F401
     except ImportError:
@@ -214,6 +234,94 @@ def cmd_check_materials(a) -> int:
     _out(report)
     print("PASS" if not bad else f"BLOCK: {bad} finding(s) to fix")
     return 1 if bad else 0
+
+
+def cmd_tailor(a) -> int:
+    from .documents import package
+    cfg = _cfg()
+    try:
+        r = package.tailor(cfg, a.id, evaluation=_evaluations(cfg).get(a.id), lang=a.lang or "",
+                           track=a.track or "", force=a.force)
+    except (FileNotFoundError, FileExistsError, ValueError) as e:
+        print(e)
+        return 1
+    print(f"package: {r['dir']}\nlanguage: {r['lang']} ({r['why']})\ntrack: {r['track']} (base {r['base']})")
+    print("edit cv.yml and letter.md (brief.md has the keywords and what to leave out), then: "
+          f"jobveyra build {a.id}")
+    return 0
+
+
+def _print_report(report: dict) -> None:
+    mark = {True: "PASS", False: "FAIL", None: "WARN"}
+    for name, doc in report["documents"].items():
+        print(f"{name}: {doc.get('pdf') or doc['tex']}")
+        for c in doc["checks"]:
+            print(f"  [{mark[c['ok']]}] {c['check']}: {c['detail']}")
+    print("PASS" if report["pass"] else "BLOCK: fix the FAIL lines and build again")
+
+
+def cmd_build(a) -> int:
+    from .documents import package
+    from .documents.content import ContentError
+    cfg = _cfg()
+    try:
+        report = package.build(cfg, a.id, mark=not a.no_mark, queue=_queue(cfg), compile_pdf=not a.tex_only)
+    except (FileNotFoundError, ContentError) as e:
+        print(e)
+        return 1
+    _print_report(report)
+    if report.get("state"):
+        print(f"job state: {report['state']}")
+    return 0 if report["pass"] else 1
+
+
+def cmd_render(a) -> int:
+    """Render a CV (.yml) or letter (.md) on its own, outside any job package."""
+    from .documents import build as docbuild
+    from .documents import package
+    from .documents.content import ContentError, load_cv, parse_letter
+    from .documents.latex import render_cv, render_letter
+    cfg = _cfg()
+    src = Path(a.file)
+    hdr = package.header_from(cfg)
+    try:
+        if src.suffix.lower() in (".yml", ".yaml"):
+            doc = load_cv(src, hdr)
+            tex, pages = render_cv(doc, paper=cfg.materials.paper, font=cfg.materials.font), cfg.materials.cv_pages
+            header = doc.header
+        else:
+            tex = render_letter(parse_letter(src.read_text(encoding="utf-8")), hdr, paper=cfg.materials.paper,
+                                font=cfg.materials.font)
+            pages, header = cfg.materials.letter_pages, hdr
+    except ContentError as e:
+        print(e)
+        return 1
+    out = Path(a.out) if a.out else src.with_suffix(".tex")
+    out.write_text(tex, encoding="utf-8")
+    print(f"tex: {out}")
+    if a.tex_only:
+        return 0
+    try:
+        pdf = docbuild.compile_tex(out, engine=cfg.materials.engine)
+    except docbuild.BuildError as e:
+        print(e)
+        return 1
+    results, _ = docbuild.check_pdf(pdf, pages=pages, contains=[x for x in (header.email, header.phone) if x],
+                                    ascii_dates=src.suffix.lower() in (".yml", ".yaml"))
+    _print_report({"documents": {src.stem: {"pdf": str(pdf), "tex": str(out), "checks": results}},
+                   "pass": docbuild.passed(results)})
+    return 0 if docbuild.passed(results) else 1
+
+
+def cmd_verify_pdf(a) -> int:
+    from .documents import build as docbuild
+    results, text = docbuild.check_pdf(Path(a.pdf), pages=a.pages, contains=a.contains or [],
+                                       keywords=a.keyword or [], ascii_dates=not a.no_ascii_dates)
+    if a.dump_text:
+        Path(a.dump_text).write_text(text, encoding="utf-8")
+    _print_report({"documents": {Path(a.pdf).name: {"pdf": a.pdf, "tex": "", "checks": results}},
+                   "pass": docbuild.passed(results)})
+    return 0 if docbuild.passed(results) else 1
 
 
 def cmd_review(a) -> int:
@@ -455,6 +563,26 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("check-materials", cmd_check_materials, "fabrication, self-negative wording and ATS checks for a package")
     p.add_argument("dir")
     p.add_argument("--keyword", action="append", help="posting keyword to check coverage for (repeatable)")
+    p = add("tailor", cmd_tailor, "start a job's package: CV copy in the right language, letter skeleton, brief")
+    p.add_argument("id")
+    p.add_argument("--lang", help="document language (default: chosen from the posting)")
+    p.add_argument("--track", help="track key whose CV base to use (default: from the evaluation or title)")
+    p.add_argument("--force", action="store_true", help="overwrite an existing package")
+    p = add("build", cmd_build, "compile a job's CV and letter and run every document check")
+    p.add_argument("id")
+    p.add_argument("--no-mark", action="store_true", help="do not move the job to ready_to_submit on PASS")
+    p.add_argument("--tex-only", action="store_true", help="write .tex and run text checks without compiling")
+    p = add("render", cmd_render, "render one CV (.yml) or letter (.md) to PDF and check it")
+    p.add_argument("file")
+    p.add_argument("--out", help="where to write the .tex (default: next to the file)")
+    p.add_argument("--tex-only", action="store_true")
+    p = add("verify-pdf", cmd_verify_pdf, "check any PDF as an ATS reads it: pages, text layer, layout")
+    p.add_argument("pdf")
+    p.add_argument("--pages", type=int, default=None)
+    p.add_argument("--contains", action="append", help="text that must be in the text layer (repeatable)")
+    p.add_argument("--keyword", action="append", help="posting keyword to look for (repeatable)")
+    p.add_argument("--dump-text", help="write the extracted text layer here")
+    p.add_argument("--no-ascii-dates", action="store_true")
     add("review", cmd_review, "stage the next batch for approval and write its review page")
     p = add("approve", cmd_approve, "approve a staged batch")
     p.add_argument("batch")

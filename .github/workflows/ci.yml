@@ -23,3 +23,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install -e ".[dev]"
       - run: pytest -q
+
+  documents:
+    # compiles real CVs and letters, so the TeX-dependent tests run instead of skipping
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-xetex texlive-luatex texlive-fonts-recommended fonts-lmodern poppler-utils
+      - run: pip install -e ".[dev]"
+      - run: pytest -q -rs tests/test_documents.py

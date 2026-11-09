@@ -10,6 +10,7 @@ Sections
   policy     submission mode (batch_approve | auto | fill_only), batch size, fit thresholds,
              daily cap, source diversity
   sources    job boards and feeds to scan (see jobveyra.sources)
+  materials  document languages, paper size, page limits, letter length, LaTeX engine
   notify     newsletter email, Telegram, generic webhook (Slack, Discord, Teams)
   llm        optional model for semantic scoring and drafting; deterministic code stays the
              source of truth and personal data is masked before any call by default
@@ -94,6 +95,17 @@ class Policy:
 
 
 @dc.dataclass
+class Materials:
+    languages: list[str] = dc.field(default_factory=lambda: ["en"])  # document languages, first is the default
+    paper: str = "letter"                                            # letter | a4
+    cv_pages: int = 1
+    letter_pages: int = 1
+    letter_words: list[int] = dc.field(default_factory=lambda: [250, 330])
+    engine: str = "auto"                                             # auto | lualatex | xelatex
+    font: str = "auto"                                               # auto, or any installed font name
+
+
+@dc.dataclass
 class Notify:
     email_enabled: bool = False
     telegram_enabled: bool = False
@@ -118,6 +130,7 @@ class Config:
     sources: list[dict[str, Any]]
     notify: Notify
     llm: LLM
+    materials: Materials = dc.field(default_factory=Materials)
 
     def path(self, rel: str) -> Path:
         return (self.workspace / rel).resolve() if rel else self.workspace
@@ -144,7 +157,7 @@ def _choice(value: str, allowed: tuple[str, ...], key: str) -> str:
 
 def from_dict(raw: dict, workspace: Path) -> Config:
     raw = dict(raw or {})
-    unknown = sorted(set(raw) - {"candidate", "focus", "policy", "sources", "notify", "llm"})
+    unknown = sorted(set(raw) - {"candidate", "focus", "policy", "sources", "notify", "llm", "materials"})
     if unknown:
         raise ConfigError(f"top level: unknown section(s) {', '.join(unknown)}")
     f = dict(raw.get("focus") or {})
@@ -173,13 +186,25 @@ def from_dict(raw: dict, workspace: Path) -> Config:
 
     llm = _pick(LLM, raw.get("llm"), "llm")
     _choice(llm.provider, LLM_PROVIDERS, "llm.provider")
+    materials = _pick(Materials, raw.get("materials"), "materials")
+    _choice(materials.paper, ("letter", "a4"), "materials.paper")
+    _choice(materials.engine, ("auto", "lualatex", "xelatex"), "materials.engine")
+    lw = materials.letter_words
+    if not (isinstance(lw, list) and len(lw) == 2 and 0 < int(lw[0]) <= int(lw[1])):
+        raise ConfigError("materials.letter_words must be [min, max] with 0 < min <= max")
+    if materials.cv_pages < 1 or materials.letter_pages < 1:
+        raise ConfigError("materials: page limits must be at least 1")
+    from .documents.content import LANGS
+    bad = [x for x in materials.languages if x not in LANGS]
+    if bad or not materials.languages:
+        raise ConfigError(f"materials.languages: use codes from {', '.join(LANGS)}")
     sources = list(raw.get("sources") or [])
     for i, s in enumerate(sources):
         if not isinstance(s, dict) or "type" not in s:
             raise ConfigError(f"sources[{i}]: each source needs a 'type'")
     return Config(workspace=workspace, candidate=_pick(Candidate, raw.get("candidate"), "candidate"),
                   focus=focus, policy=policy, sources=sources,
-                  notify=_pick(Notify, raw.get("notify"), "notify"), llm=llm)
+                  notify=_pick(Notify, raw.get("notify"), "notify"), llm=llm, materials=materials)
 
 
 def load(workspace: Path | None = None) -> Config:

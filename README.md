@@ -52,7 +52,8 @@ recorded. A filled form, a clicked button or a high score is never counted as pr
 ## Quick start
 
 ```bash
-pip install "jobveyra[charts]"     # Python 3.10+; charts need Pillow
+pip install "jobveyra[all]"        # Python 3.10+; charts need Pillow, PDF checks use pypdf
+# PDFs: TeX Live or MiKTeX (lualatex or xelatex); Poppler adds the layout check
 
 jobveyra init ~/my-search && cd ~/my-search
 # edit jobveyra.yml (who you are, where you want to work, policy, sources)
@@ -60,6 +61,8 @@ jobveyra init ~/my-search && cd ~/my-search
 jobveyra doctor
 jobveyra discover && jobveyra evaluate
 jobveyra status
+jobveyra tailor <job id>   # CV and letter for one job; edit them, then
+jobveyra build <job id>    # compile and check both
 ```
 
 Then let an agent work through the queue:
@@ -107,8 +110,9 @@ discover       focus filters, dedup by requisition and content
 evaluate       legitimacy checks, eight scored dimensions with
      │         evidence, hard blockers, lane
      ▼
-materials      fabrication guard, self-negative wording guard,
-     │         ATS text check
+documents      CV and letter per job in the posting's language,
+     │         compiled and read back as an ATS would;
+     │         fabrication and wording guards
      ▼
 approve        batch review page and signed approval
      ▼
@@ -155,6 +159,19 @@ becomes `needs_check` instead of a duplicate application.
 - Self-negative wording guard in English, French, Spanish and Portuguese.
 - ATS text check: keyword coverage, contact details, extraction noise.
 - Cover-letter angles drawn from the posting and only your evidenced skills.
+
+**Documents**
+- One CV base per track and per language (`cv/ds.yml`, `cv/ds.fr.yml`) in plain YAML.
+  `jobveyra tailor <id>` copies the right base into the job's package in the posting's
+  language, with a letter skeleton and a brief: keywords to mirror, the requirements your fact
+  base supports, and the ones it does not (kept out of both documents).
+- `jobveyra build <id>` renders a one-page CV and cover letter in a classic serif layout, compiles
+  them with LuaLaTeX or XeLaTeX, and checks the PDFs as an applicant-tracking system reads them:
+  page limit, clean text layer, email and phone as literal text, ASCII date ranges, keyword
+  coverage, and layout (orphaned entry headers, holes, early page ends). The fabrication and
+  wording guards run on both documents. A PASS moves the job to `ready_to_submit`.
+- Section titles, dates, salutations and closings in English, French, Spanish, Portuguese, German
+  and Italian. `jobveyra render` and `jobveyra verify-pdf` work on any file outside a job.
 
 **After you apply**
 - Outcomes ledger, funnel with time to first reply, response patterns by source, portal,
