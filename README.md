@@ -23,6 +23,11 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/jobveyra/"><img src="https://img.shields.io/pypi/v/jobveyra" alt="PyPI"></a>
+  <a href="https://github.com/EllenSyuu/JobVeyra/actions/workflows/ci.yml"><img src="https://github.com/EllenSyuu/JobVeyra/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#compared-with-other-tools">Comparison</a> ·
@@ -47,8 +52,7 @@ recorded. A filled form, a clicked button or a high score is never counted as pr
 ## Quick start
 
 ```bash
-git clone https://github.com/EllenSyuu/JobVeyra.git && cd JobVeyra
-pip install ".[charts]"            # Python 3.10+; charts need Pillow
+pip install "jobveyra[charts]"     # Python 3.10+; charts need Pillow
 
 jobveyra init ~/my-search && cd ~/my-search
 # edit jobveyra.yml (who you are, where you want to work, policy, sources)

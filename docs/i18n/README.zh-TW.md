@@ -48,8 +48,7 @@ JobVeyra 把選擇權交給你，依工作區分別設定：
 ## 快速開始
 
 ```bash
-git clone https://github.com/EllenSyuu/JobVeyra.git && cd JobVeyra
-pip install ".[charts]"            # Python 3.10+; charts need Pillow
+pip install "jobveyra[charts]"     # Python 3.10+; charts need Pillow
 
 jobveyra init ~/my-search && cd ~/my-search
 # edit jobveyra.yml (who you are, where you want to work, policy, sources)
