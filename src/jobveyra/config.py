@@ -103,6 +103,7 @@ class Materials:
     letter_words: list[int] = dc.field(default_factory=lambda: [250, 330])
     engine: str = "auto"                                             # auto | lualatex | xelatex
     font: str = "auto"                                               # auto, or any installed font name
+    voice: str = "warn"                                              # warn | strict | off (writing tells)
 
 
 @dc.dataclass
@@ -189,6 +190,7 @@ def from_dict(raw: dict, workspace: Path) -> Config:
     materials = _pick(Materials, raw.get("materials"), "materials")
     _choice(materials.paper, ("letter", "a4"), "materials.paper")
     _choice(materials.engine, ("auto", "lualatex", "xelatex"), "materials.engine")
+    _choice(materials.voice, ("warn", "strict", "off"), "materials.voice")
     lw = materials.letter_words
     if not (isinstance(lw, list) and len(lw) == 2 and 0 < int(lw[0]) <= int(lw[1])):
         raise ConfigError("materials.letter_words must be [min, max] with 0 < min <= max")

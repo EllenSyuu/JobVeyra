@@ -170,6 +170,13 @@ becomes `needs_check` instead of a duplicate application.
   page limit, clean text layer, email and phone as literal text, ASCII date ranges, keyword
   coverage, and layout (orphaned entry headers, holes, early page ends). The fabrication and
   wording guards run on both documents. A PASS moves the job to `ready_to_submit`.
+- A second reading before anything is sent: `jobveyra reviewer-prompt <id>` gives any agent a
+  self-contained hiring-manager review request, and `jobveyra apply-edits` applies its exact edits.
+  The Claude Code plugin ships the reviewer as its own agent.
+- Writing checks: a document that names an AI or writing tool is blocked (text, file name and PDF
+  metadata); stock phrases, inflated verbs and em dashes are flagged (`materials.voice`). Facts about
+  the employer must sit in `claims.md` with a source found independently, never a link from the posting.
+- Files to upload are named after you (`Alex_Rivera_CV.pdf`).
 - Section titles, dates, salutations and closings in English, French, Spanish, Portuguese, German
   and Italian. `jobveyra render` and `jobveyra verify-pdf` work on any file outside a job.
 

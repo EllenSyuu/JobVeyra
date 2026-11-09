@@ -275,6 +275,34 @@ def cmd_build(a) -> int:
     return 0 if report["pass"] else 1
 
 
+def cmd_reviewer_prompt(a) -> int:
+    from .documents import package
+    cfg = _cfg()
+    try:
+        print(package.reviewer_prompt(cfg, a.id), end="")
+    except FileNotFoundError as e:
+        print(e)
+        return 1
+    return 0
+
+
+def cmd_apply_edits(a) -> int:
+    from .documents import package
+    cfg = _cfg()
+    raw = Path(a.file).read_text(encoding="utf-8") if a.file != "-" else sys.stdin.read()
+    start, end = raw.find("["), raw.rfind("]")
+    try:
+        edits = json.loads(raw[start:end + 1]) if start >= 0 else []
+    except ValueError as e:
+        print(f"no JSON array of edits found: {e}")
+        return 1
+    res = package.apply_edits(cfg, a.id, edits)
+    _out(res)
+    print(f"{sum(1 for r in res if r.get('applied') is True and r.get('edit') is not None)}/{len(edits)} applied; "
+          f"then: jobveyra build {a.id}")
+    return 0
+
+
 def cmd_render(a) -> int:
     """Render a CV (.yml) or letter (.md) on its own, outside any job package."""
     from .documents import build as docbuild
@@ -572,6 +600,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("id")
     p.add_argument("--no-mark", action="store_true", help="do not move the job to ready_to_submit on PASS")
     p.add_argument("--tex-only", action="store_true", help="write .tex and run text checks without compiling")
+    p = add("reviewer-prompt", cmd_reviewer_prompt, "print a self-contained review request for a second agent")
+    p.add_argument("id")
+    p = add("apply-edits", cmd_apply_edits, "apply a reviewer's exact edits (JSON array) to a job's package")
+    p.add_argument("id")
+    p.add_argument("file", help="file with the reviewer's reply, or - for stdin")
     p = add("render", cmd_render, "render one CV (.yml) or letter (.md) to PDF and check it")
     p.add_argument("file")
     p.add_argument("--out", help="where to write the .tex (default: next to the file)")

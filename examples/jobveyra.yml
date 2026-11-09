@@ -73,6 +73,8 @@ materials:
   letter_words: [250, 330]
   engine: auto                      # auto | lualatex | xelatex (TeX Live or MiKTeX)
   font: auto                        # auto picks XCharter, TeX Gyre or Latin Modern; or name any installed font
+  voice: warn                       # writing tells (stock phrases, em dashes ...): warn | strict | off
+                                    # naming an AI or writing tool always blocks
 
 notify:
   email_enabled: false              # SMTP settings come from environment variables (see docs/NOTIFY.md)
