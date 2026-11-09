@@ -75,6 +75,8 @@ def cmd_init(a) -> int:
     master = ws / "cv" / "master.md"
     if not master.exists():
         shutil.copyfile(TEMPLATES / "master.md", master)
+    if not (ws / "answers.yml").exists():
+        shutil.copyfile(TEMPLATES / "answers.yml", ws / "answers.yml")
     example_cv = ws / "cv" / "example.yml"
     if not example_cv.exists():
         shutil.copyfile(TEMPLATES / "cv.yml", example_cv)
@@ -496,6 +498,114 @@ def cmd_markets(a) -> int:
     return 0
 
 
+def cmd_answers(a) -> int:
+    from .answers import Memory
+    cfg = _cfg()
+    mem = Memory(cfg.workspace)
+    today = _today(a.today)
+    if a.action == "lookup":
+        hit = mem.lookup(a.question, a.company)
+        print(f"{hit[0]}   [{hit[1]}]" if hit else "NONE")
+        return 0 if hit else 1
+    if a.action == "ask":
+        if not a.question or not a.job:
+            print("ask needs --question and --job")
+            return 1
+        job = _queue(cfg).get(a.job)
+        kind, text = mem.ask(a.question, a.company or (job or {}).get("employer", ""), a.job, today)
+        if kind == "answer":
+            print(f"ANSWER: {text}")
+            return 0
+        _queue(cfg).block(a.job, f"hold:{text}", action=f"answer {text} on the board or with `jobveyra answers reply {text} ...`")
+        print(f"HOLD {text}: the job waits until the candidate answers")
+        return 3
+    if a.action == "record":
+        mem.record(a.company, a.question, a.answer, today)
+        return 0
+    if a.action == "reply":
+        from . import board
+        done = board.comment(cfg, _queue(cfg), f"{a.qid}: {a.answer}", today)
+        print("\n".join(done) or f"no open question {a.qid}")
+        return 0 if done else 1
+    for r in mem.rules():
+        print(f"[rule] {r['note'] or r['match']}: {r['answer']}")
+    for qn in mem.open_questions():
+        print(f"[open {qn['id']}] {qn['company']}: {qn['question']}")
+    return 0
+
+
+def cmd_board(a) -> int:
+    from . import board
+    cfg = _cfg()
+    q = _queue(cfg)
+    if a.action == "render":
+        text = board.render(cfg, q, _today(a.today))
+        if a.out:
+            Path(a.out).write_text(text, encoding="utf-8")
+        else:
+            print(text, end="")
+        return 0
+    body = (Path(a.file).read_text(encoding="utf-8") if a.file and a.file != "-" else sys.stdin.read())
+    done = board.apply(cfg, q, body) if a.action == "apply" else board.comment(cfg, q, body, _today(a.today))
+    print("\n".join(done))
+    return 0
+
+
+def cmd_retro(a) -> int:
+    from . import retro
+    cfg = _cfg()
+    path, text = retro.review(cfg, _queue(cfg), _today(a.today))
+    print(text if a.stdout else f"review: {path}", end="" if a.stdout else "\n")
+    return 0
+
+
+def cmd_learn(a) -> int:
+    from . import retro
+    cfg = _cfg()
+    if not a.text:
+        print("\n".join(retro.learnings(cfg)) or "no learnings yet")
+        return 0
+    print(retro.learn(cfg, " ".join(a.text), _today(None)))
+    return 0
+
+
+def cmd_inbox(a) -> int:
+    from . import inbox
+    cfg = _cfg()
+    files = []
+    for f in a.files:
+        p = Path(f)
+        files += sorted(x for x in p.iterdir() if x.is_file()) if p.is_dir() else [p]
+    res = inbox.scan(cfg, _queue(cfg), inbox.read_messages(files), apply=a.apply)
+    _out(res)
+    if not a.apply:
+        print("dry run: add --apply to record outcomes")
+    return 0
+
+
+def cmd_consistency(a) -> int:
+    from . import consistency
+    cfg = _cfg()
+    probs = consistency.check(cfg, _queue(cfg), _today(a.today))
+    if a.json:
+        _out(probs)
+    else:
+        for p in probs:
+            print(f"{p['kind']:<32} {p['job']}  {p['detail']}")
+        print("consistent" if not probs else f"{len(probs)} problem(s)")
+    return 1 if probs else 0
+
+
+def cmd_phone(a) -> int:
+    from .report import phone
+    cfg = _cfg()
+    out = Path(a.out) if a.out else cfg.workspace / "reports" / "phone.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(phone.render(cfg, _queue(cfg), _today(a.today)), encoding="utf-8")
+    print(f"phone page: {out}")
+    return 0
+
+
 def cmd_recover(a) -> int:
     _out(_queue(_cfg()).recover())
     return 0
@@ -734,6 +844,33 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("target", help="job id, scope or URL")
     p = add("markets", cmd_markets, "list market packs, or print one")
     p.add_argument("name", nargs="?")
+    p = add("answers", cmd_answers, "answer memory: lookup, ask (or hold one question per employer), record, reply, list")
+    p.add_argument("action", choices=["lookup", "ask", "record", "reply", "list"])
+    p.add_argument("qid", nargs="?", help="question id for reply (Q3)")
+    p.add_argument("--question", default="")
+    p.add_argument("--company", default="")
+    p.add_argument("--answer", default="")
+    p.add_argument("--job", default="")
+    p.add_argument("--today")
+    p = add("board", cmd_board, "a Markdown checklist to tick: render it, apply ticks, or apply a comment (Q3: answer)")
+    p.add_argument("action", choices=["render", "apply", "comment"])
+    p.add_argument("file", nargs="?", help="edited board or comment text (default: stdin)")
+    p.add_argument("--out")
+    p.add_argument("--today")
+    p = add("retro", cmd_retro, "write today's review: yesterday, the queue, reply rates by segment, lessons")
+    p.add_argument("--today")
+    p.add_argument("--stdout", action="store_true")
+    p = add("learn", cmd_learn, "add a lesson to learnings.md (no text: print them)")
+    p.add_argument("text", nargs="*")
+    p = add("inbox", cmd_inbox, "classify recruiting emails (.eml, .mbox, text) and record outcomes")
+    p.add_argument("files", nargs="+")
+    p.add_argument("--apply", action="store_true")
+    p = add("consistency", cmd_consistency, "check that the queue, outcomes, packages and deadlines agree")
+    p.add_argument("--json", action="store_true")
+    p.add_argument("--today")
+    p = add("phone", cmd_phone, "write a self-contained phone page of the search")
+    p.add_argument("--out")
+    p.add_argument("--today")
     p = add("unblock", cmd_unblock, "release blocked jobs for a portal or one job")
     p.add_argument("--portal")
     p.add_argument("--id")

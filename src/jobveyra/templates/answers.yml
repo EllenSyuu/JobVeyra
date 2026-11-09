@@ -1,0 +1,18 @@
+# Standing answers to application-form questions, written once by you.
+# An agent checks this file before asking you anything. First match wins; `match` is a
+# case-insensitive regular expression over the question text. Remove the leading # to use a line.
+#
+# Questions that are yours alone (legal attestations, signatures, voluntary demographic
+# self-identification) are never answered from earlier answers; add a rule here only if you
+# want one used every time.
+
+# - match: 'authori[sz]ed to work|right to work|eligible to work'
+#   answer: "Yes"
+#   note: work authorization
+# - match: 'notice period|start date|available to start'
+#   answer: "Two weeks"
+# - match: 'salary|compensation expectation'
+#   answer: "The midpoint of the posted range"
+# - match: 'self[- ]?identif|gender|ethnic|disabilit|veteran'
+#   answer: "Prefer not to answer"
+[]

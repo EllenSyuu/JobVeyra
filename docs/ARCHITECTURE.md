@@ -19,12 +19,19 @@ markets/         market packs (YAML): eligibility, language and document
                  rules per market, matched against candidate.status
 signins.py       jobs waiting on a login grouped by session, durable
                  sign-in signals, verify and release; portal playbooks
+answers.py       answer memory: answers.yml rules, per-employer answers,
+                 one open question per employer
+board.py         Markdown checklist: render, apply ticks, apply replies
+retro.py         daily review and learnings.md
+inbox.py         recruiting emails to outcomes
+consistency.py   queue, outcomes, packages and deadlines agree
 approvals.py     batch review page and approval tokens
 worker.py        lease, package, clicked, done, uncertain, fail
 analytics/       funnel, patterns, calibration, skill demand
 interview/       story bank, prep sheets, negotiation, follow-ups
 report/          digest, newsletter (email), status markdown,
-                 Telegram and webhook notifications, calendar files
+                 Telegram and webhook notifications, calendar files,
+                 phone page
 dashboard/       local web dashboard (stdlib http.server); records
                  decisions only, never submits
 cli.py           `jobveyra <command>`

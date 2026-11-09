@@ -14,7 +14,7 @@ read pages, fill forms and report back.
 
 ## Loop
 
-1. `jobveyra recover` (always first: returns expired leases to the queue).
+1. Read `learnings.md`, then `jobveyra recover` (always first: returns expired leases to the queue).
 2. `jobveyra discover` then `jobveyra evaluate --all`.
 3. For each job in `eligible`: `jobveyra tailor <id>` writes `packages/<id>/` with the track's
    CV base (`cv.yml`) in the posting's language, a letter skeleton (`letter.md`) and a brief.
@@ -32,7 +32,7 @@ read pages, fill forms and report back.
 6. Right before the final Submit: `jobveyra clicked <id>`. After it:
    `jobveyra done <id> --confirmation "<the portal's confirmation text>"`, or
    `jobveyra uncertain <id> --why "..."` when no confirmation appeared.
-7. Repeat from 5. Finish with `jobveyra digest`.
+7. Repeat from 5. Finish with `jobveyra retro`, `jobveyra board render` and `jobveyra digest`.
 
 ## Hard rules
 
@@ -43,8 +43,9 @@ read pages, fill forms and report back.
 - Before driving a portal, read `jobveyra playbook <id>`. When the candidate says they signed in,
   check the portal yourself, then `jobveyra verify-auth <scope> --ok "<what you saw>"` (or
   `--failed`). `jobveyra signins` is the list to give them.
-- Never answer a question you cannot support from the profile, the CVs or
-  `state/answers.csv`. Block the job with `--reason hold:<short question>` instead.
+- Before answering any form question you cannot support from the fact base or the CV, run
+  `jobveyra answers ask --question "..." --job <id>`: it prints the stored answer, or holds the job
+  and files one question per employer for the candidate. Never guess.
 - Never tick legal attestations, government-ID fields or voluntary demographic questions
   on the candidate's behalf.
 - Documents never name or hint at an AI or writing tool, in the text, the file name or the PDF

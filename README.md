@@ -198,6 +198,24 @@ becomes `needs_check` instead of a duplicate application.
   SmartRecruiters, LinkedIn and UN Careers (`jobveyra playbook <job>`); your own notes in
   `playbooks/<portal>.md` are appended.
 
+**Every day**
+- Answer memory: your standing answers live in `answers.yml`; answers given before are remembered
+  per employer. An unknown question becomes one open question per employer (`jobveyra answers ask`)
+  and the jobs wait for your reply instead of being guessed. Legal attestations and demographic
+  questions are never answered from memory.
+- A board to tick instead of typing commands (`jobveyra board`): portals to sign in to, questions,
+  applications to look for on a portal, stuck jobs, replies to record. Works in a GitHub issue of a
+  private repository (see [`docs/BOARD.md`](docs/BOARD.md)), an Obsidian or Notion page, or a file.
+- `jobveyra retro` writes a daily review (yesterday, the queue, reply rates by segment with
+  intervals, suggested lessons); `jobveyra learn "<lesson>"` keeps `learnings.md`, which agents
+  read before every run.
+- `jobveyra inbox` reads recruiting emails (.eml, .mbox or pasted text) in four languages and
+  records rejections, interviews, tests and offers; a confirmation email resolves an uncertain
+  submission. Nothing is recorded when an email matches more than one job.
+- `jobveyra consistency` checks that the queue, outcomes, packages and deadlines agree.
+- `jobveyra phone` writes a self-contained phone page: today's numbers, what needs you, and every
+  application with search and filters. No contact details, no network requests.
+
 **After you apply**
 - Outcomes ledger, funnel with time to first reply, response patterns by source, portal,
   track and lane with confidence intervals, and score calibration (Brier score, AUC) that
