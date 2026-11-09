@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "JobVeyra Pulse",
+  "version": "0.2.0",
+  "description": "A small floating card with your job search at a glance, read from the JobVeyra dashboard on your own computer.",
+  "permissions": ["storage", "alarms"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{ "matches": ["https://*/*", "http://*/*"], "js": ["widget.js"], "run_at": "document_idle", "all_frames": false }],
+  "options_page": "options.html",
+  "action": { "default_title": "JobVeyra Pulse: show or hide" }
+}

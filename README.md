@@ -213,6 +213,8 @@ becomes `needs_check` instead of a duplicate application.
   records rejections, interviews, tests and offers; a confirmation email resolves an uncertain
   submission. Nothing is recorded when an email matches more than one job.
 - `jobveyra consistency` checks that the queue, outcomes, packages and deadlines agree.
+- JobVeyra Pulse, a small browser extension in `integrations/browser-extension/`: a floating card
+  with the last 14 days and what needs you, read only from your local dashboard.
 - `jobveyra phone` writes a self-contained phone page: today's numbers, what needs you, and every
   application with search and filters. No contact details, no network requests.
 
