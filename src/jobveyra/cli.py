@@ -314,9 +314,11 @@ def cmd_stats(a) -> int:
     else:
         from .discover import load_posting
         texts = [p.text for j in jobs if (p := load_posting(cfg.workspace, j["id"])) and p.text]
-        vocab = sorted({s for t in cfg.focus.tracks for s in t.skills} | set(a.term or []))
+        from .evaluate.rubric import VOCAB
+        held = sorted({s for t in cfg.focus.tracks for s in t.skills})
+        vocab = sorted(set(VOCAB) | set(held) | set(a.term or []))
         rows = skills.demand(texts, vocab)
-        _out({"demand": rows, "gaps": skills.gaps(rows, vocab)})
+        _out({"demand": rows, "gaps": skills.gaps(rows, held)})
     return 0
 
 
@@ -410,6 +412,12 @@ def cmd_calendar(a) -> int:
     Path(a.out).write_text(calendar.ics(calendar.events_from_digest(dg)), encoding="utf-8")
     print(f"wrote {a.out}")
     return 0
+
+
+def cmd_dashboard(a) -> int:
+    from .dashboard import server
+    cfg = _cfg()
+    return server.run(cfg, host=a.host, port=a.port, read_only=a.read_only, open_browser=not a.no_browser)
 
 
 # ---------------------------------------------------------------- parser
@@ -515,6 +523,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--more")
     p = add("calendar", cmd_calendar, "deadlines and follow-ups as an .ics file")
     p.add_argument("out")
+    p = add("dashboard", cmd_dashboard, "local web dashboard: overview, queue, job detail, review, insights")
+    p.add_argument("--port", type=int, default=8765, help="port to listen on (default 8765; 0 picks a free one)")
+    p.add_argument("--host", default=None,
+                   help="address to bind (default 127.0.0.1; any other address must be given explicitly)")
+    p.add_argument("--no-browser", action="store_true", help="do not open a browser window")
+    p.add_argument("--read-only", action="store_true", help="show everything, record nothing")
     return ap
 
 

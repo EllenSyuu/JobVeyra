@@ -19,6 +19,8 @@ analytics/       funnel, patterns, calibration, skill demand
 interview/       story bank, prep sheets, negotiation, follow-ups
 report/          digest, newsletter (email), status markdown,
                  Telegram and webhook notifications, calendar files
+dashboard/       local web dashboard (stdlib http.server); records
+                 decisions only, never submits
 cli.py           `jobveyra <command>`
 ```
 

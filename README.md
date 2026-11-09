@@ -7,6 +7,22 @@
 </p>
 
 <p align="center">
+  <b>English</b> ·
+  <a href="docs/i18n/README.zh-CN.md">简体中文</a> ·
+  <a href="docs/i18n/README.zh-TW.md">繁體中文</a> ·
+  <a href="docs/i18n/README.ja.md">日本語</a> ·
+  <a href="docs/i18n/README.ko.md">한국어</a> ·
+  <a href="docs/i18n/README.fr.md">Français</a> ·
+  <a href="docs/i18n/README.es.md">Español</a> ·
+  <a href="docs/i18n/README.pt-BR.md">Português</a> ·
+  <a href="docs/i18n/README.de.md">Deutsch</a> ·
+  <a href="docs/i18n/README.it.md">Italiano</a> ·
+  <a href="docs/i18n/README.ru.md">Русский</a> ·
+  <a href="docs/i18n/README.ar.md">العربية</a> ·
+  <a href="docs/i18n/README.hi.md">हिन्दी</a>
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#compared-with-other-tools">Comparison</a> ·
@@ -49,6 +65,7 @@ Then let an agent work through the queue:
 | Claude Code | `/plugin marketplace add EllenSyuu/JobVeyra` then `/plugin install jobveyra@jobveyra`; commands `/jobveyra:search`, `/jobveyra:review`, `/jobveyra:apply`, `/jobveyra:digest` |
 | Codex, OpenCode, Cursor, Gemini CLI, Copilot | Open the workspace; they read [`AGENTS.md`](AGENTS.md) (`GEMINI.md` points to the same file) |
 | No agent | Every step is a plain command; see `jobveyra --help` |
+| Browser | `jobveyra dashboard` |
 | Docker | `docker build -t jobveyra .` then `docker run --rm -v "$PWD:/workspace" jobveyra discover` |
 
 ## Focus anywhere
@@ -150,6 +167,14 @@ becomes `needs_check` instead of a duplicate application.
 - Telegram, Slack, Discord or Teams notifications through one webhook setting.
 - A status block for any Markdown file, such as a private repository's README.
 
+**Dashboard**
+- `jobveyra dashboard` serves a local web page on 127.0.0.1: headline numbers and a 14-day
+  chart, what needs attention, the full queue with filters, each job's evaluation, posting and
+  history, batch review and approval, and the analytics with their intervals.
+- It records decisions only (outcomes, holds, manual checks, approvals). It never submits an
+  application or enters credentials. Every action needs a per-session token; `--read-only`
+  turns actions off.
+
 ## Compared with other tools
 
 Based on each project's public README in November 2026. Corrections are welcome.
@@ -168,6 +193,7 @@ Based on each project's public README in November 2026. Corrections are welcome.
 | Score calibration | Brier, AUC, threshold advice | Advisory calibration | Not stated | Not stated |
 | Outcome analytics | Funnel, patterns with intervals, skill demand | Funnel, patterns, skill gaps | Skill statistics | Outcome ledgers |
 | Daily report | Email digest, Telegram, webhooks | Not stated | Telegram | Not stated |
+| Local dashboard | Web dashboard (overview, queue, job detail, review and approval, insights) | Terminal dashboard | Local web dashboard | Not stated |
 | Model required | No (optional, masked) | An AI CLI or evaluator | Yes | A coding agent |
 | Runtimes | Claude Code plugin, AGENTS.md CLIs, Docker, plain CLI | Many AI CLIs, Docker | Python app, Docker | Agent skill plus CLI |
 

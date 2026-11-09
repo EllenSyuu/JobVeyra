@@ -42,7 +42,7 @@ import sqlite3
 import tempfile
 import unicodedata
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from . import paths
 
