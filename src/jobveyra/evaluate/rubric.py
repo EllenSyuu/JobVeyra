@@ -629,6 +629,30 @@ def _range_score(level: str, lo: str, hi: str, near: float, far: float) -> tuple
     return (1.0 if dist == 0 else near if dist == 1 else far), dist
 
 
+def _reach(p: Posting, cfg, reqs: list[Requirement]) -> str:
+    """Judge the title against the candidate, not just the target range: one level above their own
+    level (or up to two years over their experience) is a stretch worth flagging; two levels above
+    (or three or more years over) is out of reach on the stated minimums."""
+    c = cfg.candidate
+    if c.level:
+        level, explicit = title_seniority(p.title)
+        if explicit and level in SENIORITY:
+            gap = SENIORITY.index(level) - SENIORITY.index(c.level)
+            if gap >= 2:
+                return f"out_of_reach:{level}"
+            if gap == 1:
+                return f"stretch:{level}"
+    if c.years_experience is not None:
+        yrs = [r.years for r in reqs if r.years is not None and r.kind == "required"]
+        if yrs:
+            over = max(yrs) - float(c.years_experience)
+            if over >= 3:
+                return f"out_of_reach:{max(yrs):g}y"
+            if over > 0:
+                return f"stretch:{max(yrs):g}y"
+    return ""
+
+
 def _seniority(p: Posting, cfg, reqs: list[Requirement]) -> Dimension:
     w = DEFAULT_WEIGHTS["seniority"]
     lo, hi = cfg.focus.seniority_min, cfg.focus.seniority_max
@@ -855,6 +879,12 @@ def _blocker_words(b: str) -> str:
         return f"it requires {b.split(':', 1)[1]} at a level you do not hold"
     if b.startswith("employment:"):
         return f"it is a {b.split(':', 1)[1].replace('_', ' ')} role outside your employment types"
+    if b.startswith("out_of_reach:"):
+        what = b.split(":", 1)[1]
+        return (f"it asks for {what[:-1]} years, well beyond yours" if what.endswith("y")
+                else f"it is a {what} title, two or more levels above yours")
+    if b.startswith("market:"):
+        return f"a market rule excludes it ({b.split(':', 1)[1].replace('_', ' ')})"
     return b
 
 
@@ -912,6 +942,18 @@ def evaluate(p: Posting, cfg, *, job_id: str, history=()) -> Evaluation:
         blockers.append(f"employment:{emp}")
     if avoid:
         blockers.append("avoid_employer")
+    reach = _reach(p, cfg, reqs)
+    if reach:
+        (blockers if reach.startswith("out_of_reach") else flags).append(reach)
+    market_hits = []
+    if cfg.focus.markets:
+        from .. import markets
+        market_hits = markets.check(markets.load(cfg.focus.markets, cfg.workspace), p, cfg.candidate.status)
+        for h in market_hits:
+            if h["verdict"] == "fail":
+                blockers.append(f"market:{h['rule']}")
+            elif h["verdict"] == "flag":
+                flags.append(f"market:{h['rule']}")
 
     try:
         from . import legitimacy                         # written separately; optional here
@@ -925,7 +967,7 @@ def evaluate(p: Posting, cfg, *, job_id: str, history=()) -> Evaluation:
                 blockers.append("closed")
 
     ev = Evaluation(job_id=job_id, fit=0, stars=1.0, track=track.key if track is not None else "",
-                    dimensions=dims, blockers=list(dict.fromkeys(blockers)), flags=flags)
+                    dimensions=dims, blockers=list(dict.fromkeys(blockers)), flags=flags, market=market_hits)
     return _finish(ev, cfg, flagship)
 
 
@@ -970,4 +1012,9 @@ def report_markdown(ev: Evaluation, p: Posting) -> str:
     lines += ["", "## Flags", ""]
     lines += [f"- `{f}`" + (f" (−{FLAG_PENALTY} fit)" if f.split(':')[0] in PENALISED_FLAGS else "")
               for f in ev.flags] or ["- none"]
+    if ev.market:
+        lines += ["", "## Market rules", ""]
+        for h in ev.market:
+            lines.append(f"- **{h['verdict'].upper()}** `{h['pack']}/{h['rule']}`: {h['note']}"
+                         + (f"\n  > {h['quote']}" if h.get("quote") else ""))
     return "\n".join(lines) + "\n"

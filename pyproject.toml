@@ -43,7 +43,7 @@ jobveyra = "jobveyra.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-jobveyra = ["templates/*", "templates/.*", "fonts/*", "dashboard/static/*"]
+jobveyra = ["templates/*", "templates/.*", "fonts/*", "dashboard/static/*", "markets/packs/*.yml", "playbooks/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

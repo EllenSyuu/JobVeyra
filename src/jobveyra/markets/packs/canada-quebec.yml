@@ -1,0 +1,53 @@
+name: canada-quebec
+description: Canada, with Québec and federal public-service specifics
+applies_to: [canada, quebec, québec, montreal, montréal, laval, gatineau, ottawa, toronto, vancouver, calgary,
+             edmonton, winnipeg, halifax, ", qc", ", on", ", bc", ", ab", ", mb", ", ns", " qc ", " on "]
+rules:
+  - id: citizen_or_pr_required
+    match: 'canadian citizens? or (?:a )?permanent residents?|(?:must|need to) be (?:a )?canadian citizen|permanent residen(?:t|cy) (?:status )?(?:is )?required|\bPR required|citoyen(?:ne)? canadien(?:ne)? ou résident(?:e)? permanent'
+    verdict: fail
+    unless_status: [citizen, permanent_resident]
+    note: Open to Canadian citizens and permanent residents only.
+  - id: federal_preference
+    match: 'preference (?:will be given|is given) to (?:eligible )?veterans|public service employment act|canadian citizens and permanent residents will be given preference|la préférence sera accordée aux anciens combattants'
+    verdict: flag
+    unless_status: [citizen, permanent_resident]
+    note: Federal external process. Veterans, then citizens and permanent residents, are appointed first; odds are lower for others.
+  - id: reliability_status
+    match: 'reliability status|cote de fiabilité'
+    verdict: flag
+    note: Reliability status depends on verifiable background history; check the department's notes.
+  - id: secret_clearance
+    match: '\b(?:top )?secret (?:security )?clearance|enhanced reliability|cote de sécurité (?:secret|très secret)'
+    verdict: fail
+    unless_status: [clearance_eligible_ca]
+    note: Security clearance required. Add `clearance_eligible_ca` to candidate.status if you are eligible.
+  - id: french_required
+    match: '(?:fluent|excellent|strong|advanced|proficien\w*) (?:in |knowledge of )?french (?:is )?(?:required|essential|mandatory)|french (?:is )?(?:required|essential|mandatory)|maîtrise (?:du|de la langue) français|français (?:requis|obligatoire|essentiel)'
+    verdict: note
+    note: French is a working requirement. JobVeyra's language gate compares it with your level; documents follow the posting's language.
+  - id: bilingual_imperative
+    match: 'bilingual imperative|bilingue impératif|\b[ABC]{3}/[ABC]{3}\b'
+    verdict: flag
+    note: Federal bilingual imperative. The stated levels (reading/writing/oral, A<B<C) must be met at appointment.
+  - id: no_lmia
+    match: 'unable to (?:provide|offer) (?:visa |work permit |immigration )?sponsorship|will not sponsor|no lmia|not able to sponsor|aucun parrainage'
+    verdict: fail
+    if_status: [needs_employer_permit]
+    note: The employer will not sponsor a work permit.
+documents:
+  headings:
+    fr: {experience: Expérience professionnelle, education: Formation, projects: Projets,
+         publications: Publications, skills: Compétences, awards: Distinctions et prix}
+  salutation: {en: "Dear Hiring Manager,", fr: "Madame, Monsieur,"}
+  closing: {en: "Sincerely,", fr: "Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées."}
+guidance: |
+  - Leave out photo, date of birth, age, marital status, nationality, SIN and religion.
+  - Contact line: city and province ("Montréal, QC"), phone, email, LinkedIn or GitHub. No street address.
+  - Do not mention work-permit or immigration details in documents. Answer a direct form question truthfully and briefly.
+  - One page by default; two pages are normal for federal government, academic and research roles.
+  - In Québec an English ad must also exist in French, so the ad's language is not the working language.
+    Read the stated requirement.
+  - A French document must read as native Québec French (courriel, stage, formation), never as a translation.
+  - Federal screening questions: answer each essential qualification separately with a concrete example.
+  - Salary context: Job Bank wages by occupation, published federal pay scales. Never invent a figure.

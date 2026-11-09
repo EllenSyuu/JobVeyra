@@ -1,0 +1,33 @@
+name: united-states
+description: United States private sector and federal jobs
+applies_to: [united states, usa, " us ", "u.s.", ", ny", ", ca", ", tx", ", wa", ", ma", ", il", ", dc", ", va", ", md",
+             ", ga", ", co", ", nc", ", pa", ", nj", ", fl", new york, san francisco, seattle, boston, chicago, austin,
+             washington, los angeles, denver, atlanta]
+rules:
+  - id: us_citizen_required
+    match: 'u\.?s\.? citizenship (?:is )?required|must be (?:a )?u\.?s\.? citizen|only u\.?s\.? citizens'
+    verdict: fail
+    unless_status: [us_citizen]
+    note: US citizens only.
+  - id: us_person_export_control
+    match: '\bITAR\b|\bEAR\b.{0,40}export|u\.?s\.? person'
+    verdict: flag
+    unless_status: [us_citizen, us_permanent_resident]
+    note: Export-control wording (ITAR/EAR, "U.S. person"); usually limits the role to citizens and permanent residents.
+  - id: clearance
+    match: '(?:active|current|ability to obtain).{0,30}(?:secret|ts/sci|public trust) clearance'
+    verdict: fail
+    unless_status: [us_clearance_eligible]
+    note: US security clearance required.
+  - id: no_sponsorship
+    match: 'without (?:current or future )?(?:visa )?sponsorship|will not sponsor|unable to sponsor|not (?:able|eligible) to sponsor|no (?:visa )?sponsorship'
+    verdict: fail
+    if_status: [needs_us_visa]
+    note: The employer will not sponsor a visa.
+documents:
+  salutation: {en: "Dear Hiring Manager,"}
+  closing: {en: "Sincerely,"}
+guidance: |
+  - Leave out photo, date of birth, age, marital status and nationality.
+  - Federal jobs (USAJOBS) want a longer résumé with hours per week and month/year dates for every role.
+  - State the city and state; a full address is not expected.

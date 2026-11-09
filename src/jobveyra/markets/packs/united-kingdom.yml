@@ -1,0 +1,21 @@
+name: united-kingdom
+description: United Kingdom
+applies_to: [united kingdom, " uk ", ", uk", england, scotland, wales, northern ireland, london, manchester, edinburgh,
+             glasgow, bristol, cambridge, oxford, leeds, birmingham]
+rules:
+  - id: right_to_work
+    match: '(?:must|need to) have (?:the )?(?:existing |full )?right to work in the uk|unable to (?:offer|provide) (?:visa )?sponsorship|no sponsorship'
+    verdict: fail
+    if_status: [needs_uk_visa]
+    note: Existing UK right to work required; no Skilled Worker sponsorship.
+  - id: security_vetting
+    match: '\b(?:SC|DV|BPSS)\b (?:clearance|vetting)|security check clearance|developed vetting'
+    verdict: flag
+    note: UK security vetting; SC and DV usually need several years of UK residence.
+documents:
+  salutation: {en: "Dear Hiring Manager,"}
+  closing: {en: "Yours sincerely,"}
+guidance: |
+  - "CV", not résumé; two pages is normal outside graduate schemes.
+  - Leave out photo and date of birth.
+  - Many public-sector forms ask for answers against each "essential criterion" in the person specification.

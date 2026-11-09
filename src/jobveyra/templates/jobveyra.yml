@@ -9,6 +9,9 @@ candidate:
   languages: {en: C2, pt: native, es: B2}
   work_authorization: [EU]          # where you may work without sponsorship (country or bloc codes)
   needs_sponsorship: false
+  status: []                        # tags market packs read, e.g. citizen, permanent_resident
+  level: ""                         # your level (junior, mid, senior ...): titles 2+ levels above are out of reach
+  # years_experience: 3             # relevant years; postings asking 3+ more are out of reach
   master_cv: cv/master.md           # the fact base: nothing may appear in a document unless it is here
   facts: cv/facts.yml               # optional extra verified facts (numbers, dates, awards)
 
@@ -40,6 +43,8 @@ focus:
   languages_ok: [en, pt, es]
   flagship_employers: [European Central Bank, Banco de Portugal, Example Labs]
   avoid_employers: []
+  markets: []                       # market packs (`jobveyra markets`): canada-quebec, united-states,
+                                    # united-kingdom, un-system, or your own in markets/<name>.yml
 
 policy:
   submission: batch_approve         # batch_approve: one review page approves a batch, then it submits

@@ -49,6 +49,7 @@ def card(cfg, job: dict) -> dict:
         "apply": job.get("apply_url") or job.get("url"), "portal": job.get("portal"),
         "lane": job.get("lane"), "package": job.get("package") or "", "attempt": int(job.get("attempts") or 0) + 1,
         "may_submit": ok, "policy": why,
+        "playbook": f"jobveyra playbook {job['id']}",
         "rules": [
             "answer form questions only from the profile and verified facts; stop and ask when unsure",
             "run `jobveyra check-materials` on the package before typing anything",

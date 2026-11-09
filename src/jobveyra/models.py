@@ -67,6 +67,7 @@ class Evaluation:
     flags: list[str] = dc.field(default_factory=list)        # soft warnings: repost, stale, vague pay ...
     lane: str = ""                 # excluded | fast | full
     summary: str = ""
+    market: list[dict[str, Any]] = dc.field(default_factory=list)   # market-pack hits with the quoted line
 
     def as_dict(self) -> dict[str, Any]:
         return dc.asdict(self)

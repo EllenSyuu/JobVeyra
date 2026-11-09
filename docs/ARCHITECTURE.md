@@ -15,6 +15,10 @@ materials/       fabrication guard, outbound guard, ATS text check,
                  cover-letter angles
 documents/       CV and letter content (YAML, Markdown), LaTeX rendering,
                  compile, PDF text-layer and layout checks, per-job package
+markets/         market packs (YAML): eligibility, language and document
+                 rules per market, matched against candidate.status
+signins.py       jobs waiting on a login grouped by session, durable
+                 sign-in signals, verify and release; portal playbooks
 approvals.py     batch review page and approval tokens
 worker.py        lease, package, clicked, done, uncertain, fail
 analytics/       funnel, patterns, calibration, skill demand

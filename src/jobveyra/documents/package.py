@@ -69,6 +69,13 @@ def choose_language(cfg, posting) -> tuple[str, str]:
                         f"{allowed[0]} is your first document language")
 
 
+def _market(cfg, location: str, lang: str) -> dict:
+    if not cfg.focus.markets:
+        return {"headings": {}, "salutation": "", "closing": "", "guidance": []}
+    from .. import markets
+    return markets.document_defaults(markets.load(cfg.focus.markets, cfg.workspace), location, lang)
+
+
 def fact_base(cfg) -> str:
     parts = []
     for rel in (cfg.candidate.master_cv, cfg.candidate.facts):
@@ -156,6 +163,13 @@ def tailor(cfg, jid: str, *, posting=None, evaluation: dict | None = None, lang:
               "Leave these out of the CV and the letter. A skill that is not written down is unknown, "
               "not absent; if you do have it, add it to your fact base first.", ""]
     brief += [f"- {g}" for g in a.get("gaps", [])] or ["- (none)"]
+    hits = (evaluation or {}).get("market") or []
+    if hits:
+        brief += ["", "## Market rules this posting triggered", ""]
+        brief += [f"- {h['verdict'].upper()} {h['pack']}/{h['rule']}: {h['note']}"
+                  + (f" Quoted: \"{h['quote']}\"" if h.get("quote") else "") for h in hits]
+    for name, text in _market(cfg, posting.location or "", chosen)["guidance"]:
+        brief += ["", f"## Conventions: {name}", "", text]
     brief_path.write_text("\n".join(brief) + "\n", encoding="utf-8")
     (d / "keywords.json").write_text(json.dumps(kw, ensure_ascii=False), encoding="utf-8")
     return {"dir": str(d), "lang": chosen, "why": why, "track": track.key, "base": str(base),
@@ -248,9 +262,15 @@ def build(cfg, jid: str, *, today: dt.date | None = None, mark: bool = False, qu
     report: dict = {"job_id": jid, "dir": str(d), "documents": {}}
 
     cv = load_cv(cv_path, hdr)
+    loc = (posting.location if posting else "") or ""
+    for k, v in _market(cfg, loc, cv.lang)["headings"].items():
+        cv.headings.setdefault(k, v)
     docs = [("cv", cv.text(), render_cv(cv, paper=m.paper, font=m.font), m.cv_pages, "cv", cv.lang)]
     if letter_path.is_file():
         letter = parse_letter(letter_path.read_text(encoding="utf-8"))
+        mk = _market(cfg, loc, letter.lang)
+        letter.salutation = letter.salutation or mk["salutation"]
+        letter.closing = letter.closing or mk["closing"]
         docs.append(("letter", letter.body_text(), render_letter(letter, cv.header, paper=m.paper, today=today, font=m.font),
                      m.letter_pages, "letter", letter.lang))
     cv_name, letter_name = upload_names(cv.header.name)

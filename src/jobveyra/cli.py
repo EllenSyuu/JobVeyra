@@ -420,6 +420,82 @@ def cmd_unblock(a) -> int:
     return 0
 
 
+def cmd_signins(a) -> int:
+    from . import signins
+    cfg = _cfg()
+    rows = signins.waiting(_queue(cfg))
+    if a.json:
+        _out(rows)
+        return 0
+    if not rows:
+        print("no job is waiting on a sign-in")
+        return 0
+    for g in rows:
+        due = f", earliest deadline {g['earliest_deadline']}" if g["earliest_deadline"] else ""
+        print(f"{g['portal']} [{g['scope']}]: {len(g['jobs'])} waiting{due}")
+        print(f"  open: {g['open']}\n  {g['hint']}")
+        for j in g["jobs"][:5]:
+            print(f"   - {j['employer']} · {j['title']}" + (f" (deadline {j['deadline']})" if j["deadline"] else ""))
+    print("after signing in: jobveyra signed-in <scope>")
+    return 0
+
+
+def cmd_signed_in(a) -> int:
+    from . import signins
+    cfg = _cfg()
+    row = signins.signal(cfg.state_dir, a.scope, source=a.source)
+    print(f"recorded: signed in to {row['scope']}. An agent checks the portal, then runs "
+          f"`jobveyra verify-auth {row['scope']} --ok \"<what it saw>\"` to release the jobs.")
+    return 0
+
+
+def cmd_wait_signin(a) -> int:
+    from . import signins
+    cfg = _cfg()
+    p = signins.wait(cfg.state_dir, interval=a.interval, timeout=a.timeout)
+    _out(p)
+    return 0 if p else 2
+
+
+def cmd_verify_auth(a) -> int:
+    from . import signins
+    cfg = _cfg()
+    if bool(a.ok) == bool(a.failed):
+        print("give exactly one of --ok EVIDENCE or --failed WHY")
+        return 1
+    _out(signins.verify(_queue(cfg), cfg.state_dir, a.scope, ok=bool(a.ok), evidence=a.ok or a.failed))
+    return 0
+
+
+def cmd_playbook(a) -> int:
+    from . import signins
+    cfg = _cfg()
+    key = a.target
+    job = _queue(cfg).get(key)
+    if job:
+        key = job.get("apply_url") or job.get("url") or ""
+    print(signins.playbook(cfg.workspace, key), end="")
+    return 0
+
+
+def cmd_markets(a) -> int:
+    from . import markets
+    cfg = _cfg()
+    have = markets.available(cfg.workspace)
+    if a.name:
+        if a.name not in have:
+            print(f"unknown pack {a.name}; available: {', '.join(sorted(have))}")
+            return 1
+        print(have[a.name].read_text(encoding="utf-8"), end="")
+        return 0
+    for name, path in sorted(have.items()):
+        pk = markets.load([name], cfg.workspace)[0]
+        on = "*" if name in cfg.focus.markets else " "
+        print(f"{on} {name:<16} {len(pk.rules):>2} rules  {pk.description}")
+    print("* = active (focus.markets in jobveyra.yml)")
+    return 0
+
+
 def cmd_recover(a) -> int:
     _out(_queue(_cfg()).recover())
     return 0
@@ -642,6 +718,22 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("block", cmd_block, "hold a job (auth:<portal>, hold:<question>, captcha ...)")
     p.add_argument("id")
     p.add_argument("--reason", required=True)
+    p = add("signins", cmd_signins, "jobs waiting on a sign-in, grouped by portal, earliest deadline first")
+    p.add_argument("--json", action="store_true")
+    p = add("signed-in", cmd_signed_in, "record that you signed in to a portal scope (e.g. workday:acme)")
+    p.add_argument("scope")
+    p.add_argument("--source", default="cli")
+    p = add("wait-signin", cmd_wait_signin, "wait until someone records a sign-in (for a live browser session)")
+    p.add_argument("--interval", type=float, default=30)
+    p.add_argument("--timeout", type=float, default=3600)
+    p = add("verify-auth", cmd_verify_auth, "after checking the portal: release its jobs (--ok) or keep them (--failed)")
+    p.add_argument("scope")
+    p.add_argument("--ok", help="what the browser showed (e.g. the account email in the header)")
+    p.add_argument("--failed", help="why the session is not signed in")
+    p = add("playbook", cmd_playbook, "how to get through a portal: general rules plus the portal's own page")
+    p.add_argument("target", help="job id, scope or URL")
+    p = add("markets", cmd_markets, "list market packs, or print one")
+    p.add_argument("name", nargs="?")
     p = add("unblock", cmd_unblock, "release blocked jobs for a portal or one job")
     p.add_argument("--portal")
     p.add_argument("--id")

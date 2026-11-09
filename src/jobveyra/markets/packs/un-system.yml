@@ -1,0 +1,27 @@
+name: un-system
+description: United Nations Secretariat, agencies, funds and programmes
+applies_to: []
+rules:
+  - id: nationality_programme
+    match: 'junior professional officer|\bJPO\b|associate expert programme|young professionals programme|\bYPP\b'
+    verdict: flag
+    note: Open only to nationals of the funding or participating countries for that year; check the current list.
+  - id: grade_minimum
+    match: 'minimum of (?:two|three|five|seven|ten|\d+) \(?\d*\)? ?years of progressively responsible'
+    verdict: note
+    note: UN grade minimums are hard requirements; compare your years with the stated minimum.
+  - id: consultancy
+    match_employment: 'contract|consult|temporary'
+    verdict: note
+    note: A consultancy is not a staff appointment; it carries no UN pension, and usually no relocation or visa support.
+  - id: local_recruitment
+    match: 'local(?:ly)? recruit\w*|recrutement local'
+    verdict: flag
+    note: Local recruitment; you usually need the right to work at the duty station already.
+documents:
+  salutation: {en: "Dear Hiring Manager,", fr: "Madame, Monsieur,"}
+guidance: |
+  - Most UN applications go through a portal (Inspira, Workday, UNjobs) with structured fields and a motivation box;
+    a separate letter only when asked. Respect the stated character limits.
+  - Competency questions: one concrete example each (situation, what you did, result).
+  - English and French are the Secretariat's working languages; another UN official language is an asset.

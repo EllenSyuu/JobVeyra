@@ -146,6 +146,14 @@ becomes `needs_check` instead of a duplicate application.
 - Hard blockers end the evaluation: no sponsorship for a market you cannot work in, a
   required language you do not speak at B2 or above, security clearance, employment type,
   employers you avoid, a closed posting.
+- Market packs (`focus.markets`): the rules of a job market that are not about you. Built in:
+  Canada and Québec (citizen or PR only, federal preference, reliability and secret clearance,
+  bilingual imperative, French requirements), United States, United Kingdom and the UN system. Your
+  `candidate.status` tags decide which rules apply; each hit quotes the line that triggered it. Add
+  your own in `markets/<name>.yml`. Packs also set document conventions (French section titles,
+  salutations) and writing guidance.
+- Reach: with `candidate.level` or `candidate.years_experience` set, a title one level above you is
+  flagged as a stretch, and two levels above (or three or more years over) is out of reach.
 - Legitimacy signals: closed postings, reposts, stale postings, evergreen talent pools,
   missing pay, vague titles.
 - Salary parsing across currencies and periods, annualised and compared with your floor.
@@ -179,6 +187,16 @@ becomes `needs_check` instead of a duplicate application.
 - Files to upload are named after you (`Alex_Rivera_CV.pdf`).
 - Section titles, dates, salutations and closings in English, French, Spanish, Portuguese, German
   and Italian. `jobveyra render` and `jobveyra verify-pdf` work on any file outside a job.
+
+**Sign-ins**
+- `jobveyra signins` lists the jobs waiting on a login, one line per portal session (each Workday
+  tenant is its own), earliest deadline first, with the page to open and what signing in means there.
+- `jobveyra signed-in <scope>` records that you signed in, durably, even when no agent is running.
+  An agent waiting with `jobveyra wait-signin` picks it up, checks the portal in the browser, and
+  `jobveyra verify-auth` releases that portal's jobs back to the queue.
+- Portal playbooks for Workday, Taleo, SuccessFactors, iCIMS, Greenhouse, Lever, Ashby,
+  SmartRecruiters, LinkedIn and UN Careers (`jobveyra playbook <job>`); your own notes in
+  `playbooks/<portal>.md` are appended.
 
 **After you apply**
 - Outcomes ledger, funnel with time to first reply, response patterns by source, portal,

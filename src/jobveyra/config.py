@@ -63,6 +63,9 @@ class Candidate:
     needs_sponsorship: bool = False
     master_cv: str = "cv/master.md"
     facts: str = ""                                                  # optional extra verified facts (YAML)
+    status: list[str] = dc.field(default_factory=list)               # tags market packs read: citizen, permanent_resident ...
+    level: str = ""                                                  # your own level (junior, mid ...): titles 2+ above are out of reach
+    years_experience: float | None = None                            # relevant years; postings asking 3+ more are out of reach
 
 
 @dc.dataclass
@@ -79,6 +82,7 @@ class Focus:
     languages_ok: list[str] = dc.field(default_factory=lambda: ["en"])  # job languages the candidate works in
     flagship_employers: list[str] = dc.field(default_factory=list)
     avoid_employers: list[str] = dc.field(default_factory=list)
+    markets: list[str] = dc.field(default_factory=list)             # market packs: canada-quebec, united-states ...
 
 
 @dc.dataclass
@@ -178,6 +182,14 @@ def from_dict(raw: dict, workspace: Path) -> Config:
         if not re.fullmatch(r"[a-z0-9_-]+", t.key):
             raise ConfigError(f"focus.tracks: key {t.key!r} must be lowercase letters, digits, - or _")
 
+    candidate = _pick(Candidate, raw.get("candidate"), "candidate")
+    if candidate.level:
+        _choice(candidate.level, SENIORITY, "candidate.level")
+    from . import markets as _markets
+    try:
+        _markets.load(focus.markets, workspace)
+    except _markets.PackError as e:
+        raise ConfigError(f"focus.markets: {e}") from e
     policy = _pick(Policy, raw.get("policy"), "policy")
     _choice(policy.submission, SUBMISSION_MODES, "policy.submission")
     if not 0 <= policy.exclude_below <= policy.full_package_at <= 100:
@@ -204,7 +216,7 @@ def from_dict(raw: dict, workspace: Path) -> Config:
     for i, s in enumerate(sources):
         if not isinstance(s, dict) or "type" not in s:
             raise ConfigError(f"sources[{i}]: each source needs a 'type'")
-    return Config(workspace=workspace, candidate=_pick(Candidate, raw.get("candidate"), "candidate"),
+    return Config(workspace=workspace, candidate=candidate,
                   focus=focus, policy=policy, sources=sources,
                   notify=_pick(Notify, raw.get("notify"), "notify"), llm=llm, materials=materials)
 

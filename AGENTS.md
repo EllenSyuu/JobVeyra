@@ -36,6 +36,9 @@ read pages, fill forms and report back.
   In `fill_only` mode, fill the form and stop before Submit.
 - Never enter passwords, one-time codes or payment details, never solve CAPTCHAs, never
   create accounts. Run `jobveyra block <id> --reason auth:<portal>` (or `captcha`) and move on.
+- Before driving a portal, read `jobveyra playbook <id>`. When the candidate says they signed in,
+  check the portal yourself, then `jobveyra verify-auth <scope> --ok "<what you saw>"` (or
+  `--failed`). `jobveyra signins` is the list to give them.
 - Never answer a question you cannot support from the profile, the CVs or
   `state/answers.csv`. Block the job with `--reason hold:<short question>` instead.
 - Never tick legal attestations, government-ID fields or voluntary demographic questions
