@@ -211,7 +211,7 @@ class Http:
         for s in stems:
             st = self.fixtures / f"{s}.status"
             if st.is_file():
-                code = int(st.read_text().strip() or 404)
+                code = int(st.read_text(encoding="utf-8").strip() or 404)
                 if code >= 400:
                     raise HttpError(url, code, f"HTTP {code} (fixture)")
             for ext in FIXTURE_EXTS:

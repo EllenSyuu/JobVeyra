@@ -51,16 +51,16 @@ PITCH = """- id: ab-test
 @pytest.fixture
 def cfg(tmp_path):
     import yaml
-    return config.from_dict(yaml.safe_load(EXAMPLE.read_text()), tmp_path)
+    return config.from_dict(yaml.safe_load(EXAMPLE.read_text(encoding="utf-8")), tmp_path)
 
 
 @pytest.fixture
 def bank(tmp_path):
     d = tmp_path / "stories"
     d.mkdir()
-    (d / "churn.yml").write_text(CHURN)
-    (d / "pitch.yml").write_text(PITCH)
-    (d / "bad.yml").write_text("id: [unclosed")
+    (d / "churn.yml").write_text(CHURN, encoding="utf-8")
+    (d / "pitch.yml").write_text(PITCH, encoding="utf-8")
+    (d / "bad.yml").write_text("id: [unclosed", encoding="utf-8")
     return stories.load(tmp_path)
 
 

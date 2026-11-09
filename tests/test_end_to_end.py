@@ -22,22 +22,22 @@ def ws(tmp_path, monkeypatch):
     monkeypatch.setenv("JOBVEYRA_HOME", str(tmp_path))
     monkeypatch.setenv("JOBQUEUE_NOW", "2026-03-10T09:00:00")
     assert cli.main(["init", str(tmp_path)]) == 0
-    raw = yaml.safe_load((tmp_path / "jobveyra.yml").read_text())
+    raw = yaml.safe_load((tmp_path / "jobveyra.yml").read_text(encoding="utf-8"))
     raw["sources"] = [{"type": "greenhouse", "board": "examplelabs"}, {"type": "lever", "board": "globex"}]
     raw["focus"]["regions"] = []
     raw["focus"]["exclude_titles"] = []
     raw["focus"]["seniority_min"], raw["focus"]["seniority_max"] = "intern", "executive"
     raw["policy"]["exclude_below"] = 0
-    (tmp_path / "jobveyra.yml").write_text(yaml.safe_dump(raw))
+    (tmp_path / "jobveyra.yml").write_text(yaml.safe_dump(raw), encoding="utf-8")
     (tmp_path / "cv" / "master.md").write_text("# Alex Rivera\nPython, SQL, statistics, machine learning, "
-                                                 "forecasting, experimentation. 2019 to 2025 at Example Corp.\n")
+                                                 "forecasting, experimentation. 2019 to 2025 at Example Corp.\n", encoding="utf-8")
     return tmp_path
 
 
 def _set_policy(ws, mode):
-    raw = yaml.safe_load((ws / "jobveyra.yml").read_text())
+    raw = yaml.safe_load((ws / "jobveyra.yml").read_text(encoding="utf-8"))
     raw["policy"]["submission"] = mode
-    (ws / "jobveyra.yml").write_text(yaml.safe_dump(raw))
+    (ws / "jobveyra.yml").write_text(yaml.safe_dump(raw), encoding="utf-8")
 
 
 def _pipeline(ws, capsys):
@@ -50,7 +50,7 @@ def _pipeline(ws, capsys):
     for j in eligible:
         pkg = ws / "packages" / j["id"].replace(":", "_")
         pkg.mkdir(parents=True, exist_ok=True)
-        (pkg / "cover.md").write_text("I have used Python and SQL since 2019.")
+        (pkg / "cover.md").write_text("I have used Python and SQL since 2019.", encoding="utf-8")
         assert run("package", j["id"], str(pkg), capsys=capsys)[0] == 0
     return queue.Queue(ws / "state")
 
@@ -108,9 +108,9 @@ def test_auto_and_fill_only(ws, capsys):
 
 def test_daily_cap(ws, capsys):
     _pipeline(ws, capsys)
-    raw = yaml.safe_load((ws / "jobveyra.yml").read_text())
+    raw = yaml.safe_load((ws / "jobveyra.yml").read_text(encoding="utf-8"))
     raw["policy"].update(submission="auto", max_per_day=1)
-    (ws / "jobveyra.yml").write_text(yaml.safe_dump(raw))
+    (ws / "jobveyra.yml").write_text(yaml.safe_dump(raw), encoding="utf-8")
     card = json.loads(run("next", capsys=capsys)[1])
     run("clicked", card["id"], capsys=capsys)
     run("done", card["id"], "--confirmation", "ok", capsys=capsys)
@@ -121,12 +121,12 @@ def test_daily_cap(ws, capsys):
 def test_check_materials_blocks_invented_numbers(ws, capsys):
     pkg = ws / "packages" / "x"
     pkg.mkdir(parents=True)
-    (pkg / "cover.md").write_text("I grew revenue by 340% at Initech in 2017.")
+    (pkg / "cover.md").write_text("I grew revenue by 340% at Initech in 2017.", encoding="utf-8")
     code, out = run("check-materials", str(pkg), capsys=capsys)
     assert code == 1 and "BLOCK" in out
 
 
 def test_init_writes_agent_rules_and_they_match_the_repo(ws):
     repo = Path(__file__).resolve().parent.parent
-    assert (ws / "AGENTS.md").read_text() == (repo / "AGENTS.md").read_text()
-    assert (repo / "src/jobveyra/templates/AGENTS.md").read_text() == (repo / "AGENTS.md").read_text()
+    assert (ws / "AGENTS.md").read_text(encoding="utf-8") == (repo / "AGENTS.md").read_text(encoding="utf-8")
+    assert (repo / "src/jobveyra/templates/AGENTS.md").read_text(encoding="utf-8") == (repo / "AGENTS.md").read_text(encoding="utf-8")

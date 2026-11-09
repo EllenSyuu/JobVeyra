@@ -14,7 +14,7 @@ def test_record_and_load_roundtrip(tmp_path):
     rows = oc.load(st)
     assert [x["outcome"] for x in rows] == ["reply", "screen"]
     assert rows[1]["at"] == "2026-03-06T00:00:00"
-    assert (st / "outcomes.jsonl").read_text().count("\n") == 2
+    assert (st / "outcomes.jsonl").read_text(encoding="utf-8").count("\n") == 2
 
 
 def test_record_defaults_to_queue_clock(tmp_path, monkeypatch):
@@ -40,7 +40,7 @@ def test_load_skips_malformed_and_sorts_by_time(tmp_path):
         json.dumps({"job_id": "a", "at": "2026-03-01T00:00:00Z", "outcome": "reply"}),
         json.dumps({"job_id": "b", "at": "2026-03-02", "outcome": "made_up"}),
         json.dumps({"job_id": "c", "at": "2026-03-03T12:00:00+02:00", "outcome": "rejected"}),
-    ]) + "\n")
+    ]) + "\n", encoding="utf-8")
     rows = oc.load(tmp_path)
     assert [(r["job_id"], r["outcome"]) for r in rows] == [("a", "reply"), ("c", "rejected"), ("a", "interview")]
     assert rows[0]["stage_note"] == ""
@@ -75,5 +75,5 @@ def test_submitted_at_and_event_log(tmp_path):
     assert oc.submitted_at({"state": "eligible", "updated_at": "2026-03-01T09:00:00"}) is None
     (tmp_path / "events.jsonl").write_text(
         json.dumps({"ts": "2026-03-01T09:00:00", "id": "a", "from": "eligible", "to": "submitted"}) + "\n"
-        + json.dumps({"ts": "2026-03-02T09:00:00", "id": "b", "from": "", "to": "discovered"}) + "\n")
+        + json.dumps({"ts": "2026-03-02T09:00:00", "id": "b", "from": "", "to": "discovered"}) + "\n", encoding="utf-8")
     assert oc.submission_times(tmp_path) == {"a": "2026-03-01T09:00:00"}

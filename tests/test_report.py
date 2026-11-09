@@ -21,7 +21,7 @@ WD = "https://globex.wd5.myworkdayjobs.com/en-US/careers/job/Lisbon/"
 
 @pytest.fixture
 def cfg(tmp_path):
-    return config.from_dict(yaml.safe_load(EXAMPLE.read_text()), tmp_path)
+    return config.from_dict(yaml.safe_load(EXAMPLE.read_text(encoding="utf-8")), tmp_path)
 
 
 def at(monkeypatch, ts):
@@ -165,7 +165,7 @@ def test_newsletter_build_files(cfg, q, tmp_path):
     for name in ("newsletter.html", "preview.html", "newsletter.txt", "chart.gif", "chart-dark.gif", "digest.json"):
         assert (out / name).is_file(), name
     assert res["subject"] == "Job search · Mar 15 · 3 submitted, 1 interview"
-    html = (out / "newsletter.html").read_text()
+    html = (out / "newsletter.html").read_text(encoding="utf-8")
     assert 'src="cid:chart"' in html and 'src="cid:chartdark"' in html
     assert "@media (prefers-color-scheme: dark)" in html and ".dark-img{display:none;}" in html
     assert 'class="dark-img"' in html and "display:none;max-height:0" in html
@@ -173,19 +173,19 @@ def test_newsletter_build_files(cfg, q, tmp_path):
     assert "Sign in to workday:globex: 2 jobs waiting, best fit 70, earliest deadline Wed Mar 18" in html
     assert "1 application ready for your approval" in html
     assert "Data science" in html and "78 / 100" in html
-    prev = (out / "preview.html").read_text()
+    prev = (out / "preview.html").read_text(encoding="utf-8")
     assert 'src="chart.gif"' in prev and 'src="chart-dark.gif"' in prev
-    txt = (out / "newsletter.txt").read_text()
+    txt = (out / "newsletter.txt").read_text(encoding="utf-8")
     assert "Submitted 3 · last 7 days 2 · replies 2 · interviews 1 · offers 0" in txt
     assert "Follow up · Globex, Data Analyst (14 days since applying)" in txt
-    assert json.loads((out / "digest.json").read_text())["subject"] == res["subject"]
+    assert json.loads((out / "digest.json").read_text(encoding="utf-8"))["subject"] == res["subject"]
 
 
 def test_newsletter_without_pillow(cfg, q, tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "PIL", None)
     res = newsletter.build(cfg, q, TODAY, tmp_path / "n")
     assert res["charts"] is False
-    assert "<img" not in (tmp_path / "n" / "newsletter.html").read_text()
+    assert "<img" not in (tmp_path / "n" / "newsletter.html").read_text(encoding="utf-8")
     assert not (tmp_path / "n" / "chart.gif").exists()
 
 
@@ -376,14 +376,14 @@ def test_status_markdown(cfg, q):
 
 def test_update_block(tmp_path):
     p = tmp_path / "README.md"
-    p.write_text("# Title\n\nintro\n<!-- JOBVEYRA:STATUS:START -->\nold\n<!-- JOBVEYRA:STATUS:END -->\nfooter\n")
+    p.write_text("# Title\n\nintro\n<!-- JOBVEYRA:STATUS:START -->\nold\n<!-- JOBVEYRA:STATUS:END -->\nfooter\n", encoding="utf-8")
     assert status.update_block(p, "new line 1\nnew line 2\n") is True
-    assert p.read_text() == ("# Title\n\nintro\n<!-- JOBVEYRA:STATUS:START -->\nnew line 1\nnew line 2\n"
+    assert p.read_text(encoding="utf-8") == ("# Title\n\nintro\n<!-- JOBVEYRA:STATUS:START -->\nnew line 1\nnew line 2\n"
                              "<!-- JOBVEYRA:STATUS:END -->\nfooter\n")
     assert status.update_block(p, "new line 1\nnew line 2") is False          # unchanged
     q = tmp_path / "plain.md"
-    q.write_text("no markers here\n")
-    assert status.update_block(q, "x") is False and q.read_text() == "no markers here\n"
+    q.write_text("no markers here\n", encoding="utf-8")
+    assert status.update_block(q, "x") is False and q.read_text(encoding="utf-8") == "no markers here\n"
     assert status.update_block(tmp_path / "missing.md", "x") is False
 
 

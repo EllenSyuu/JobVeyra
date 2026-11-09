@@ -24,22 +24,22 @@ def ws(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("JOBVEYRA_HOME", str(tmp_path))
     monkeypatch.setenv("JOBQUEUE_NOW", "2026-03-10T09:00:00")
     assert cli.main(["init", str(tmp_path)]) == 0
-    raw = yaml.safe_load((tmp_path / "jobveyra.yml").read_text())
+    raw = yaml.safe_load((tmp_path / "jobveyra.yml").read_text(encoding="utf-8"))
     raw["candidate"]["name"] = "Alex Rivera"
     raw["sources"] = [{"type": "greenhouse", "board": "examplelabs"}, {"type": "lever", "board": "globex"}]
     raw["focus"]["regions"] = []
     raw["focus"]["exclude_titles"] = []
     raw["focus"]["seniority_min"], raw["focus"]["seniority_max"] = "intern", "executive"
     raw["policy"]["exclude_below"] = 0
-    (tmp_path / "jobveyra.yml").write_text(yaml.safe_dump(raw))
-    (tmp_path / "cv" / "master.md").write_text("# Alex Rivera\nPython, SQL, statistics, machine learning.\n")
+    (tmp_path / "jobveyra.yml").write_text(yaml.safe_dump(raw), encoding="utf-8")
+    (tmp_path / "cv" / "master.md").write_text("# Alex Rivera\nPython, SQL, statistics, machine learning.\n", encoding="utf-8")
     assert cli.main(["discover", "--offline", str(FIX)]) == 0
     assert cli.main(["evaluate"]) == 0
     q = queue.Queue(tmp_path / "state")
     for j in q.all("eligible"):
         pkg = tmp_path / "packages" / j["id"].replace(":", "_")
         pkg.mkdir(parents=True, exist_ok=True)
-        (pkg / "cover.md").write_text("I have used Python and SQL.")
+        (pkg / "cover.md").write_text("I have used Python and SQL.", encoding="utf-8")
         q.package_built(j["id"], str(pkg))
     ready = q.all("ready_to_submit")
     assert len(ready) >= 3, "the fixtures should give at least three ready jobs"
@@ -390,9 +390,9 @@ def test_stage_approve_with_exclusion_and_revoke(client, ws):
 
 
 def test_stage_and_approve_follow_the_policy(ws):
-    raw = yaml.safe_load((ws["root"] / "jobveyra.yml").read_text())
+    raw = yaml.safe_load((ws["root"] / "jobveyra.yml").read_text(encoding="utf-8"))
     raw["policy"]["submission"] = "fill_only"
-    (ws["root"] / "jobveyra.yml").write_text(yaml.safe_dump(raw))
+    (ws["root"] / "jobveyra.yml").write_text(yaml.safe_dump(raw), encoding="utf-8")
     srv, t = _serve(ws["root"])
     c = Client(srv)
     try:
@@ -411,7 +411,7 @@ def test_stage_and_approve_follow_the_policy(ws):
 def test_no_endpoint_submits_or_handles_credentials():
     from jobveyra.dashboard import data
     assert set(data.ACTIONS) == {"outcome", "block", "unblock", "check", "stage", "approve", "revoke"}
-    src = (Path(server.__file__).parent / "data.py").read_text() + Path(server.__file__).read_text()
+    src = (Path(server.__file__).parent / "data.py").read_text(encoding="utf-8") + Path(server.__file__).read_text(encoding="utf-8")
     for forbidden in ("claim(", "clicked(", "worker", "password", "release_auth"):
         assert forbidden not in src.replace("never submits", ""), forbidden
 

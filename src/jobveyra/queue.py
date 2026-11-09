@@ -353,7 +353,7 @@ class Queue:
     def tx(self):
         """One transaction = exclusive file lock + reload + apply + checkpoint. Rolled back (and
         nothing written) on any exception. The lock makes claim() atomic across processes."""
-        with self.lockfile.open("a+") as lk:
+        with self.lockfile.open("a+", encoding="utf-8") as lk:
             _lock(lk)
             try:
                 self.refresh()

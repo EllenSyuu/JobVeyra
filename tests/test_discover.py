@@ -259,7 +259,7 @@ def test_run_end_to_end(ws):
     assert cached.salary_min == 55000 and cached.extra["source_name"] == "greenhouse"
     f = discover.posting_path(ws, "example-labs:greenhouse:4012345")
     assert f.parent == ws / "postings" and f.name == "example-labs_greenhouse_4012345.json"
-    assert json.loads(f.read_text())["id"] == "example-labs:greenhouse:4012345"
+    assert json.loads(f.read_text(encoding="utf-8"))["id"] == "example-labs:greenhouse:4012345"
     assert len(list((ws / "postings").glob("*.json"))) == 13
 
 
