@@ -9,7 +9,9 @@ marker ``<!-- jv:<action>:<arg> -->`` so parsing never depends on the visible wo
     signedin:<scope>        records a sign-in signal (an agent verifies it in the browser)
     found:<id>              needs_check job found on the portal: submitted
     notfound:<id>           needs_check job not on the portal: back to ready_to_submit
-    manual:<id>             the candidate applied themselves: submitted (manual)
+    final:<scope>|<kinds>   approve the last step (declaration, terms...) for that portal's parked jobs:
+                            an authorization, never a submission; the agent finishes them
+    manual:<id>             the candidate applied themselves: needs_check until the portal shows it
     skip:<id>               drop the job: excluded
     outcome:<kind>:<id>     record reply, interview, rejected, offer for a submitted job
 
@@ -53,6 +55,21 @@ def render(cfg, q, today: dt.date | None = None) -> str:
         out += [f"- **{x['id']}** {x['company']}: {x['question']} ({len(x['jobs'].split(','))} job(s) waiting)"
                 for x in qs]
         out.append("")
+    from . import queue as jq
+    finals = [j for j in q.all("blocked_human") if j.get("final_stage") == jq.AWAITING_FINAL]
+    if finals:
+        out += ["## Final approval", "", "The form is complete; only the last step needs you. Approving lets the "
+                "agent finish it; the portal's confirmation page still decides what counts as submitted.", ""]
+        fg: dict = {}
+        for j in finals:
+            fg.setdefault((q.scope(j), j.get("final_kind") or ""), []).append(j)
+        for (scope, kind), js in sorted(fg.items()):
+            label = ", ".join(jq.KIND_LABELS.get(k, k) for k in kind.split(",") if k)
+            out.append(_box(f"approve the last step on **{scope}** ({label}): {len(js)} job(s)", "final", f"{scope}|{kind}"))
+            for j in js:
+                out.append(f"  - {j.get('employer')} · {j.get('title')}: {j.get('final_need') or ''}"
+                           + (f" ([open]({j['final_page']}))" if j.get("final_page") else ""))
+        out.append("")
     checks = q.all("needs_check")
     if checks:
         out += ["## Check on the portal", "", "Submit was clicked but no confirmation was seen. Look in the portal's "
@@ -63,7 +80,7 @@ def render(cfg, q, today: dt.date | None = None) -> str:
             out.append("  " + _box("not there", "notfound", j["id"]))
         out.append("")
     blocked = [j for j in q.all() if j["state"] in ("blocked_human", "blocked_technical")
-               and not (j.get("reason") or "").startswith("hold:Q")]
+               and not (j.get("reason") or "").startswith("hold:Q") and j.get("final_stage") != jq.AWAITING_FINAL]
     if blocked:
         out += ["## Stuck", ""]
         for j in blocked:
@@ -107,6 +124,14 @@ def apply(cfg, q, body: str) -> list[str]:
                 signins.signal(cfg.state_dir, arg, source="board")
                 done.append(f"sign-in recorded for {arg}")
             continue
+        if action == "final":
+            from . import queue as jq
+            scope, _, kind = arg.partition("|")
+            for j in q.all("blocked_human"):
+                if j.get("final_stage") == jq.AWAITING_FINAL and q.scope(j) == scope and (j.get("final_kind") or "") == kind:
+                    q.grant_final(j["id"], f"candidate approved on the board ({scope} · {kind})")
+                    done.append(f"final step approved: {j.get('employer')} · {j.get('title')}")
+            continue
         if action == "outcome":
             kind, _, jid = arg.partition(":")
             j = q.get(jid)
@@ -133,9 +158,9 @@ def _job_action(q, action: str, arg: str, j: dict) -> list[str]:
     elif action == "notfound" and j["state"] == "needs_check":
         q.resolve_check(arg, found_on_portal=False, evidence="not on the portal (board)")
         done.append(f"back in the queue: {j.get('employer')}")
-    elif action == "manual" and j["state"] not in ("submitted", "excluded"):
-        q.set_state(arg, "submitted", "applied by the candidate (board)", reason="manual")
-        done.append(f"submitted by you: {j.get('employer')}")
+    elif action == "manual" and j["state"] not in ("submitted", "excluded", "needs_check"):
+        q.candidate_reported(arg, "applied by the candidate (board)")
+        done.append(f"noted that you applied: {j.get('employer')}; tick 'found it there' once the portal lists it")
     elif action == "skip" and j["state"] not in ("submitted", "excluded"):
         q.set_state(arg, "excluded", "skipped by the candidate (board)", reason="skipped:board")
         done.append(f"skipped: {j.get('employer')}")

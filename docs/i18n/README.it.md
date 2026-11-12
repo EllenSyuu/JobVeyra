@@ -204,6 +204,8 @@ l'intero workspace. Nessuna telemetria, nessun backend. Le chiamate al modello s
 predefinita e mascherate quando attive. Il motore non inserisce mai password, non risolve CAPTCHA, non crea account,
 non accetta dichiarazioni legali e non invia email diverse dal tuo riepilogo personale.
 
+L'unica eccezione dipende da te: se registri un consenso permanente con parole tue (`jobveyra authorize --consent ...`), la dichiarazione generica di veridicità e i termini obbligatori dell'ultima pagina vengono spuntati per te, solo se ogni risposta del modulo è verificata; una dichiarazione contraddetta dai tuoi fatti noti non viene mai spuntata.
+
 ## Sviluppo
 
 ```bash

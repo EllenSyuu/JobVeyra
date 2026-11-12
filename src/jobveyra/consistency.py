@@ -11,6 +11,8 @@ automatically: each needs a person or an agent to look.
   orphan_package                  a package folder whose job is not in the queue
   duplicate_open                  two open jobs with the same posting content
   deadline_passed                 an open job whose deadline is in the past
+  final_stage_mismatch            the finalization stage disagrees with the queue state
+  final_without_recovery          a job parked for final approval without its action / recovery note
 """
 from __future__ import annotations
 
@@ -46,6 +48,11 @@ def check(cfg, q, today: dt.date | None = None) -> list[dict]:
                         add("package_failed_checks", j["id"], str(p / "report.json"))
                 except ValueError:
                     add("package_failed_checks", j["id"], "report.json unreadable")
+        fs = j.get("final_stage") or ""
+        if (fs and fs not in Q.FINAL_STAGES) or (fs in Q.STAGE_STATE and j["state"] not in Q.STAGE_STATE[fs]):
+            add("final_stage_mismatch", j["id"], f"final_stage {fs} but state {j['state']}")
+        if fs == Q.AWAITING_FINAL and not (j.get("final_need") and j.get("recovery")):
+            add("final_without_recovery", j["id"], j.get("final_page") or "")
         d = oc.as_date((j.get("deadline") or "")[:10])
         if j["state"] in Q.OPEN and d and d < today:
             add("deadline_passed", j["id"], f"deadline {d.isoformat()}")

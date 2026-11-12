@@ -27,6 +27,7 @@ inbox.py         recruiting emails to outcomes
 consistency.py   queue, outcomes, packages and deadlines agree
 approvals.py     batch review page and approval tokens
 worker.py        lease, package, clicked, done, uncertain, fail
+finalize.py      the last page: what may be ticked, durable attempt record, final-approval holding pen
 analytics/       funnel, patterns, calibration, skill demand
 interview/       story bank, prep sheets, negotiation, follow-ups
 report/          digest, newsletter (email), status markdown,

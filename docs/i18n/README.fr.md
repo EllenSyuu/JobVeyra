@@ -207,6 +207,8 @@ défaut et masqués lorsqu'ils sont activés. Le moteur ne saisit jamais de mot 
 ne crée pas de compte, n'accepte aucune attestation juridique et n'envoie aucun courriel autre que votre propre
 résumé.
 
+Seule exception, qui dépend de vous : si vous enregistrez un consentement permanent avec vos propres mots (`jobveyra authorize --consent ...`), la déclaration générale d'exactitude et les conditions obligatoires de la dernière page sont cochées pour vous, uniquement si toutes les réponses du formulaire sont vérifiées ; une déclaration contredite par vos faits connus n'est jamais cochée.
+
 ## Développement
 
 ```bash

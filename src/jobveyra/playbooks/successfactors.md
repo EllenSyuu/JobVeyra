@@ -2,7 +2,8 @@
 
 - Candidate accounts are per employer. "Apply" opens a profile form, then job-specific questions.
 - Date fields use the employer's locale; check the format shown in the placeholder.
-- The data-privacy statement must be accepted to apply: leave it to the candidate unless approved.
+- The data-privacy statement must be accepted to apply: report it to `jobveyra finalize` as `terms`
+  (ticked only with the candidate's `application_terms` consent; otherwise the job is parked).
 - Listing: the career site renders results in the browser, so the HTML has none. From the career
   site's own origin, POST `/services/recruiting/v1/jobs` with `{"locale":"en_US","pageNumber":N,...}`
   and page until the result list is empty; `totalJobs` gives the count to reconcile against.

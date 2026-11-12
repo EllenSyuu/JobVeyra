@@ -275,6 +275,8 @@ Your data lives in your workspace, never in this repository. `jobveyra init` wri
 off by default and masked when on. The engine never enters passwords, solves CAPTCHAs,
 creates accounts, accepts legal attestations or sends email other than your own digest.
 
+The one exception you control: if you record a standing consent in your own words (`jobveyra authorize --consent accuracy_declaration --evidence "..."`), the last page's generic accuracy statement and required terms are ticked for you, but only when every answer on the form is verified; a declaration your known facts contradict is never ticked (`docs/FINALIZATION.md`).
+
 ## Development
 
 ```bash

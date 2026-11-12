@@ -205,6 +205,8 @@ deaktiviert und maskiert, wenn sie aktiv sind. Die Engine gibt nie Passwörter e
 Konten an, akzeptiert keine rechtlichen Erklärungen und verschickt keine E-Mails außer deiner eigenen
 Zusammenfassung.
 
+Die einzige Ausnahme liegt bei Ihnen: Wenn Sie mit eigenen Worten eine dauerhafte Zustimmung erfassen (`jobveyra authorize --consent ...`), werden die allgemeine Richtigkeitserklärung und die Pflichtbedingungen der letzten Seite angekreuzt, aber nur, wenn jede Antwort im Formular belegt ist; eine Erklärung, der Ihre bekannten Fakten widersprechen, wird nie angekreuzt.
+
 ## Entwicklung
 
 ```bash

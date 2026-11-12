@@ -205,6 +205,8 @@ excluye todo el espacio de trabajo. Sin telemetría, sin backend. Las llamadas a
 defecto y, cuando se activan, se enmascaran. El motor nunca introduce contraseñas, resuelve CAPTCHA, crea cuentas,
 acepta declaraciones legales ni envía más correo que tu propio resumen.
 
+La única excepción la decide usted: si registra un consentimiento permanente con sus propias palabras (`jobveyra authorize --consent ...`), se marcan la declaración general de exactitud y los términos obligatorios de la última página, solo cuando todas las respuestas del formulario están verificadas; nunca se marca una declaración que contradiga sus hechos conocidos.
+
 ## Desarrollo
 
 ```bash
