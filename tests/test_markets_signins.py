@@ -1,3 +1,4 @@
+from pathlib import Path
 """Market packs, the stretch / out-of-reach check, sign-in handling and portal playbooks."""
 import pytest
 import yaml
@@ -202,6 +203,8 @@ def test_playbook_combines_general_portal_and_user_notes(ws, capsys):
     assert out.index("# Every portal") < out.index("# Workday") < out.index("Acme asks about relatives")
     assert signins.playbook_name("https://jobs.lever.co/x/1") == "lever"
     assert signins.playbook_name("https://example.org/careers") == ""
+    assert signins.playbook_name("https://estm.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/x") == "oracle-recruiting"
+    assert "Read every page of a search" in signins.playbook(Path("."), "workday:acme")
 
 
 def test_markets_command_lists_and_shows(ws, capsys):

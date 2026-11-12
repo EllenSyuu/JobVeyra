@@ -1,5 +1,8 @@
 # Every portal
 
+- Read every page of a search before screening: follow the pager or the offset to the end (or call
+  the board's own JSON endpoint) and compare the count read with the total the board reports. A
+  sweep that stops at page 1 is incomplete and must be redone.
 - Work in the candidate's own browser profile. Never type a password or one-time code, never solve a
   CAPTCHA, never create an account: stop and run `jobveyra block <id> --reason auth:<scope>`.
 - Decline non-essential cookies.

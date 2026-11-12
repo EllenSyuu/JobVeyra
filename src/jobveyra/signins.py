@@ -129,7 +129,8 @@ PLAYBOOK_FOR = [(r"^workday:|myworkdayjobs", "workday"), (r"^taleo:|taleo\.net",
                 (r"^successfactors:|successfactors|sapsf", "successfactors"), (r"^icims:|icims\.com", "icims"),
                 (r"greenhouse", "greenhouse"), (r"lever\.co", "lever"), (r"ashbyhq", "ashby"),
                 (r"smartrecruiters", "smartrecruiters"), (r"linkedin", "linkedin"),
-                (r"inspira|careers\.un\.org|unjobs|jobs\.undp|unicef\.org", "un-careers")]
+                (r"inspira|careers\.un\.org|unjobs|jobs\.undp|unicef\.org", "un-careers"),
+                (r"^oracle:|oraclecloud", "oracle-recruiting")]
 
 
 def playbook_name(scope_or_url: str) -> str:

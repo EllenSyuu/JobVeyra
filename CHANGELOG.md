@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Playbooks: every search is read to its last page and reconciled with the board's own total; new
+  Oracle Recruiting Cloud page; SuccessFactors listing endpoint and the apply hand-off domain.
+
 ## 0.2.0
 
 **Documents**
