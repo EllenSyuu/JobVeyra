@@ -29,9 +29,16 @@ read pages, fill forms and report back.
 4. If `policy.submission` is `batch_approve`, run `jobveyra review` and stop until the
    candidate runs `jobveyra approve <batch>`.
 5. `jobveyra next` leases one job and prints its task card. Follow the card's rules.
-6. Right before the final Submit: `jobveyra clicked <id>`. After it:
-   `jobveyra done <id> --confirmation "<the portal's confirmation text>"`, or
-   `jobveyra uncertain <id> --why "..."` when no confirmation appeared.
+6. Ordinary steps (Next, Save, verified answers, the narrowest consent) never need approval. On
+   the last page, before Submit, report what it shows and let the engine decide:
+   `jobveyra finalize <id> --elements '[{"kind":"accuracy_declaration","text":"...","required":true},...]'`
+   (kinds: navigation, submit, answer+source, accuracy_declaration, terms, optional_consent,
+   self_identification, signature, captcha, mfa, password, account_creation, government_id,
+   chrome_permission, unknown). Exit 0: tick exactly `tick`, press Submit once. Exit 5: the job is
+   parked (or excluded) with its page and recovery note: take the next job, do not ask in chat.
+   After Submit: `jobveyra done <id> --confirmation "<the portal's confirmation text>"`, or
+   `jobveyra uncertain <id> --why "..."` when no confirmation appeared (then only
+   `jobveyra reconcile <id> --found|--not-found --evidence "<the portal's list>"`, never a resubmit).
 7. Repeat from 5. Finish with `jobveyra retro`, `jobveyra board render` and `jobveyra digest`.
 
 ## Hard rules
@@ -47,7 +54,10 @@ read pages, fill forms and report back.
   `jobveyra answers ask --question "..." --job <id>`: it prints the stored answer, or holds the job
   and files one question per employer for the candidate. Never guess.
 - Never tick legal attestations, government-ID fields or voluntary demographic questions
-  on the candidate's behalf.
+  yourself: `jobveyra finalize` decides. It ticks an attestation only with a standing consent the
+  candidate recorded in their own words, every answer verified and a true or generic statement;
+  only the candidate runs `jobveyra authorize --consent`. A browser-extension permission prompt is
+  reported as `chrome_permission`, never worked around.
 - Documents never name or hint at an AI or writing tool, in the text, the file name or the PDF
   metadata. Upload the files in `packages/<id>/upload/`, named after the candidate.
 - Never mention a requirement the candidate does not meet, in any document or form answer. A skill

@@ -204,6 +204,8 @@ workspace inteiro. Sem telemetria, sem backend. As chamadas de modelo vêm desat
 são mascaradas. O mecanismo nunca digita senhas, resolve CAPTCHAs, cria contas, aceita declarações legais ou envia
 e-mails além do seu próprio resumo.
 
+A única exceção depende de você: se registrar um consentimento permanente com suas próprias palavras (`jobveyra authorize --consent ...`), a declaração geral de veracidade e os termos obrigatórios da última página são marcados para você, somente quando todas as respostas do formulário estão verificadas; uma declaração que contradiz seus fatos conhecidos nunca é marcada.
+
 ## Desenvolvimento
 
 ```bash

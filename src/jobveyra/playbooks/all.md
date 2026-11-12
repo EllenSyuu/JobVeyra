@@ -16,5 +16,7 @@
 - Upload the files in `packages/<id>/upload/`. Delete any CV or letter a profile carried over from
   an earlier application: a letter written for another employer must never travel along.
 - A carried-over profile is often stale: check names, titles and dates against the fact base.
+- The last page (accuracy statement, required terms, e-signature): `jobveyra finalize` decides; never
+  stop the run to ask. Ordinary steps never need approval.
 - Confirmation is the portal's own success page or the application listed in the candidate's
   dashboard. Nothing else counts as submitted.

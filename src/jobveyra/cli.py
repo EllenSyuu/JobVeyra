@@ -422,6 +422,83 @@ def cmd_unblock(a) -> int:
     return 0
 
 
+def cmd_progress(a) -> int:
+    _out({a.id: _queue(_cfg()).progress(a.id, a.stage, page=a.page or "", saved=a.saved or "",
+                                         reconstructable=a.reconstructable or "")})
+    return 0
+
+
+def cmd_finalize(a) -> int:
+    from . import finalize
+    cfg = _cfg()
+    q = _queue(cfg)
+    j = q.get(a.id)
+    if j and cfg.policy.submission == "fill_only":
+        _out({"decision": "do_not_click", "why": "fill_only policy: the candidate presses Submit", "click": False})
+        return 5
+    out = finalize.finalize(q, a.id, json.loads(a.elements), page=a.page or "", saved=a.saved, recon=a.reconstructable,
+                            unverified=a.unverified)
+    _out(out)
+    return 0 if out.get("click") else 5
+
+
+def cmd_authorize(a) -> int:
+    from . import finalize
+    q = _queue(_cfg())
+    if not (a.evidence or "").strip():
+        print("authorize needs --evidence: your words and where (only the candidate records a consent)")
+        return 1
+    if a.consent:
+        _out({"consent": a.consent, "released": finalize.authorize_consent(q, a.consent, a.evidence,
+                                                                          **({"answer": a.answer} if a.answer else {}))})
+        return 0
+    if not a.id:
+        print("give a job id or --consent KIND")
+        return 1
+    _out({a.id: q.grant_final(a.id, a.evidence)})
+    return 0
+
+
+def cmd_reconcile(a) -> int:
+    q = _queue(_cfg())
+    if bool(a.found) == bool(a.not_found) or not (a.evidence or "").strip():
+        print("give exactly one of --found / --not-found, and --evidence (what the portal's list shows)")
+        return 1
+    j = q.get(a.id)
+    if j is None or j["state"] not in ("needs_check", "submitted"):
+        print(f"{a.id} is {j['state'] if j else 'unknown'}, not needs_check")
+        return 1
+    _out({a.id: j["state"] if j["state"] == "submitted" else q.resolve_check(a.id, found_on_portal=a.found, evidence=a.evidence)})
+    return 0
+
+
+def cmd_reported(a) -> int:
+    _out({a.id: _queue(_cfg()).candidate_reported(a.id, a.note or "the candidate says they applied")})
+    return 0
+
+
+def cmd_holding(a) -> int:
+    from . import finalize
+    _out(finalize.holding(_queue(_cfg())))
+    return 0
+
+
+def cmd_migrate_finalization(a) -> int:
+    q = _queue(_cfg())
+    if a.dry_run:
+        _out({"dry_run": q.migrate_finalization(dry=True)})
+        return 0
+    bdir = q.dir / "backup"
+    bdir.mkdir(parents=True, exist_ok=True)
+    from . import queue as jq
+    bk = bdir / f"queue.{jq.now().strftime('%Y%m%dT%H%M%S')}.jsonl"
+    if q.snap.exists():
+        shutil.copyfile(q.snap, bk)
+    _out({"rolled_back_rows": q.rollback_finalization()} if a.rollback else {"migrated": q.migrate_finalization()}
+         | {"backup": bk.name})
+    return 0
+
+
 def cmd_signins(a) -> int:
     from . import signins
     cfg = _cfg()
@@ -814,6 +891,36 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--signed-in", action="append", help="portal scope the browser is signed in to")
     for name, fn, help_ in (("clicked", cmd_clicked, "record the moment before the final Submit"),):
         add(name, fn, help_).add_argument("id")
+    p = add("progress", cmd_progress, "checkpoint how far a form got (so a crash or expired session can resume)")
+    p.add_argument("id")
+    p.add_argument("--stage", default="form_in_progress", choices=["form_in_progress", "form_completed", "finalization_ready"])
+    p.add_argument("--page")
+    p.add_argument("--saved", choices=["draft_saved", "not_saved", "unknown"])
+    p.add_argument("--reconstructable", choices=["yes", "no", "unknown"])
+    p = add("finalize", cmd_finalize, "last page: decide what may be ticked, record the attempt or park the job (exit 0 = press Submit once, 5 = take the next job)")
+    p.add_argument("id")
+    p.add_argument("--elements", required=True, help='JSON list, e.g. [{"kind":"accuracy_declaration","text":"..."}]')
+    p.add_argument("--page", default="")
+    p.add_argument("--saved", default="unknown", choices=["draft_saved", "not_saved", "unknown"])
+    p.add_argument("--reconstructable", default="unknown", choices=["yes", "no", "unknown"])
+    p.add_argument("--unverified", type=int, default=None, help="number of answers not taken from a verified source")
+    p = add("authorize", cmd_authorize, "approve one parked job's last step, or record a standing consent (--consent)")
+    p.add_argument("id", nargs="?")
+    p.add_argument("--consent", choices=["accuracy_declaration", "application_terms", "electronic_signature", "self_identification"])
+    p.add_argument("--evidence", default="", help="your own words and where you said them")
+    p.add_argument("--answer", default="", help="for self_identification: the saved answer")
+    p = add("reconcile", cmd_reconcile, "resolve needs_check by reading the portal's application list (never by resubmitting)")
+    p.add_argument("id")
+    p.add_argument("--found", action="store_true")
+    p.add_argument("--not-found", action="store_true")
+    p.add_argument("--evidence", default="")
+    p = add("reported", cmd_reported, "the candidate says they applied: needs_check until the portal shows it")
+    p.add_argument("id")
+    p.add_argument("--note", default="")
+    add("holding", cmd_holding, "every blocker grouped: auth, final approval, question, technical, status unknown")
+    p = add("migrate-finalization", cmd_migrate_finalization, "add the finalization fields to an existing queue (idempotent)")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--rollback", action="store_true")
     p = add("done", cmd_done, "record a confirmed submission")
     p.add_argument("id")
     p.add_argument("--confirmation", required=True)

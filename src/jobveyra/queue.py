@@ -95,6 +95,7 @@ ACTIONS = {
     "closed": "The posting may be closed: confirm and skip it",
     "no_link": "No application link found: add one or skip the job",
     "check_portal": "Check the portal's My Applications page for this job before deciding to resubmit",
+    "final": "The form is complete; only the final step needs your authorization: approve it or submit it yourself",
 }
 SCOPE_FALLBACK = "the portal"
 DEFAULT_ACTION = "Open the link to see where it stopped, then unblock or skip it"
@@ -282,7 +283,7 @@ def _unlock(fh) -> None:
     msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
 
 
-class Queue:
+class _CoreQueue:
     def __init__(self, state_dir: Path | str | None = None):
         self.dir = Path(state_dir or STATE_DIR or paths.state_dir())
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -695,6 +696,256 @@ class Queue:
                     self._set(db, j["id"], to, "migrate_states", **fields)
                     out.setdefault(to, []).append(j["id"])
         return out
+
+
+
+# ---- finalization lifecycle (layered on the engine states; no second state machine) ---------
+# The queue state stays the single source of truth for WHERE a job is. `final_stage` only records
+# how far the employer form got, so a completed form waiting for a declaration is never confused
+# with a technical failure (blocked_technical) or a submission (submitted). Mapping:
+#
+#   final_stage                      queue state (authoritative)
+#   form_in_progress                 in_progress (lease)              | requeued after a crash
+#   form_completed                   in_progress                      | blocked_auth if the session expired
+#   finalization_ready               in_progress, policy says go
+#   awaiting_final_authorization     blocked_human, reason hold:final:<kind>
+#   submit_attempted                 in_progress, clicked=1 (durable attempt record written BEFORE the click)
+#   submission_uncertain             needs_check (never resubmitted without portal evidence)
+#   submission_confirmed             submitted (confirmation text required)
+FORM_IN_PROGRESS, FORM_COMPLETED, FINALIZATION_READY = "form_in_progress", "form_completed", "finalization_ready"
+AWAITING_FINAL = "awaiting_final_authorization"
+SUBMIT_ATTEMPTED, SUBMISSION_UNCERTAIN, SUBMISSION_CONFIRMED = "submit_attempted", "submission_uncertain", "submission_confirmed"
+FORM_STAGES = (FORM_IN_PROGRESS, FORM_COMPLETED, FINALIZATION_READY)
+FINAL_STAGES = FORM_STAGES + (AWAITING_FINAL, SUBMIT_ATTEMPTED, SUBMISSION_UNCERTAIN, SUBMISSION_CONFIRMED)
+STAGE_STATE = {AWAITING_FINAL: ("blocked_human",), SUBMIT_ATTEMPTED: ("in_progress",),
+               SUBMISSION_UNCERTAIN: ("needs_check",), SUBMISSION_CONFIRMED: ("submitted",)}
+
+FINAL_FIELDS = ["final_stage",            # one of FINAL_STAGES or ''
+                "final_kind",             # what genuinely needs the candidate: declaration|terms|signature|consent|chrome_permission|question
+                "final_page",             # exact page the form stopped on
+                "final_need",             # the exact action required, plain words
+                "final_grant",            # the candidate's authorization (text + source)
+                "form_saved",             # draft_saved | not_saved | unknown
+                "reconstructable",        # yes | no | unknown: can the form be refilled from package + answers
+                "recovery",               # how to resume this application
+                "submit_attempt_at",      # durable attempt record, written before the final click
+                "attempt_id",
+                "prior_attempt_cleared",  # portal evidence that an earlier attempt did NOT submit
+                "evidence_level",         # portal | employer_email | candidate_reported | legacy
+                "interventions",          # times this job needed the candidate
+                "browser_actions"]        # reported by the browser session (metrics)
+FIELDS.extend(f for f in FINAL_FIELDS if f not in FIELDS)   # additive columns: old snapshots load unchanged
+
+KIND_LABELS = {"declaration": "accuracy declaration", "terms": "required terms / privacy statement",
+               "signature": "electronic signature", "consent": "extra consent",
+               "chrome_permission": "browser-extension permission prompt", "question": "a question for the candidate",
+               "unverified_answers": "answers not verified: the declaration cannot be certified",
+               "unknown_claim": "a fact the fact base does not establish", "government_id": "government ID number"}
+RECOVERY = {
+    "draft_saved": "The portal kept a draft: open {page} and finish the last step (no refilling)",
+    "yes": "If the session expired, the package and answer memory refill the form; only the last step remains",
+    "no": "The form cannot be rebuilt automatically: it must be filled again (the package is kept)",
+    "unknown": "Open the application page: resume the draft if it is there, otherwise the agent refills it",
+}
+
+
+def holding_category(j: dict) -> str:
+    """The five board groups. Every open blocker lands in exactly one."""
+    s = j.get("state")
+    if s == "blocked_auth":
+        return "AUTH REQUIRED"
+    if s == "blocked_human":
+        return "FINAL APPROVAL REQUIRED" if j.get("final_stage") == AWAITING_FINAL else "QUESTION REQUIRED"
+    if s == "blocked_technical":
+        return "TECHNICAL BLOCKER"
+    if s == "needs_check":
+        return "SUBMISSION STATUS UNKNOWN"
+    return ""
+
+
+def _recovery(saved: str, recon: str, page: str) -> str:
+    key = "draft_saved" if saved == "draft_saved" else recon if recon in ("yes", "no") else "unknown"
+    return RECOVERY[key].format(page=page or "the application page")
+
+
+class Queue(_CoreQueue):
+    """The queue with the finalization lifecycle on top of the core state machine."""
+
+    def _meta(self, db, jid: str, **fields) -> None:
+        fields["updated_at"] = iso(now())
+        db.execute(f"UPDATE jobs SET {', '.join(f'{k}=?' for k in fields)} WHERE id=?", (*fields.values(), jid))
+
+    # form progress ---------------------------------------------
+    def progress(self, jid: str, stage: str, *, page: str = "", saved: str = "", reconstructable: str = "") -> str:
+        if stage not in FORM_STAGES:
+            raise ValueError(f"progress stage must be one of {FORM_STAGES}")
+        with self.tx() as db:
+            j = self._row(db, jid)
+            if j["state"] != "in_progress":
+                raise ValueError(f"progress needs an in_progress lease on {jid} (state {j['state']})")
+            f = {"final_stage": stage}
+            if page:
+                f["final_page"] = page
+            if saved:
+                f["form_saved"] = saved
+            if reconstructable:
+                f["reconstructable"] = reconstructable
+            self._meta(db, jid, **f)
+        return stage
+
+    def await_final(self, jid: str, kind: str, need: str, *, page: str = "", saved: str = "unknown",
+                    reconstructable: str = "unknown") -> str:
+        """The form is complete but the last action needs the candidate: park it in the holding pen
+        (blocked_human), keep everything needed to resume, release the lease so the batch goes on."""
+        j = self.get(jid)
+        if j["state"] != "in_progress":
+            raise ValueError(f"await_final needs an in_progress lease on {jid}")
+        if int(j.get("clicked") or 0):
+            self.mark_uncertain(jid, f"final authorization asked after the submit click ({kind})")
+            return "needs_check"
+        page = page or j.get("final_page") or j.get("apply_url") or j.get("url") or ""
+        with self.tx() as db:
+            self._set(db, jid, "blocked_human", f"final:{kind}", reason=f"hold:final:{kind}", lease_until="",
+                      last_attempt_at=iso(now()), action=ACTIONS["final"], final_stage=AWAITING_FINAL,
+                      final_kind=kind, final_need=need[:300], final_page=page, form_saved=saved,
+                      reconstructable=reconstructable, recovery=_recovery(saved, reconstructable, page),
+                      interventions=str(int(j.get("interventions") or 0) + 1))
+        return "blocked_human"
+
+    def grant_final(self, jid: str, evidence: str) -> str:
+        """The candidate authorized the final step (board tick, CLI). Authorization, not submission:
+        the job goes back to the runnable queue and the executor finishes it."""
+        if not (evidence or "").strip():
+            raise ValueError("grant_final needs the authorization text and where it came from")
+        j = self.get(jid)
+        if j is None:
+            raise KeyError(jid)
+        if j["state"] != "blocked_human" or j.get("final_stage") != AWAITING_FINAL:
+            return j["state"]                                   # idempotent: nothing to grant
+        to = "ready_to_submit" if j.get("package") or j.get("apply_url") or j.get("url") else "eligible"
+        with self.tx() as db:
+            self._set(db, jid, to, f"final authorized: {evidence[:80]}", reason="", final_grant=evidence[:300],
+                      final_stage="", next_attempt_at="")
+        return to
+
+    # the durable attempt record ----------------------------------
+    def begin_submit(self, jid: str, attempt_id: str = "") -> dict:
+        """Write the attempt record BEFORE the final click. Idempotent: a second call for the same
+        lease returns already_attempted (do NOT click again, read the result instead); a job with an
+        earlier attempt and no portal evidence that it did not go through is never clicked."""
+        import hashlib
+        with self.tx() as db:
+            j = self._row(db, jid)
+            if j["state"] == "submitted":
+                return {"status": "already_submitted", "click": False}
+            if j["state"] != "in_progress":
+                raise ValueError(f"clicked() needs an in_progress lease on {jid} (claim it first)")
+            if int(j.get("clicked") or 0):
+                return {"status": "already_attempted", "click": False, "attempt_id": j.get("attempt_id") or ""}
+            if j.get("submit_attempt_at") and not j.get("prior_attempt_cleared"):
+                prior = j["submit_attempt_at"]
+            else:
+                prior = ""
+                aid = attempt_id or hashlib.sha1(f"{jid}|{iso(now())}".encode()).hexdigest()[:10]
+                self._meta(db, jid, clicked=1, submit_attempt_at=iso(now()), attempt_id=aid,
+                           final_stage=SUBMIT_ATTEMPTED, prior_attempt_cleared="")
+        if prior:
+            self.mark_uncertain(jid, f"earlier submit attempt {prior} never reconciled")
+            return {"status": "check_portal", "click": False, "prior_attempt_at": prior}
+        return {"status": "attempt_recorded", "click": True, "attempt_id": aid}
+
+    def clicked(self, jid: str) -> None:
+        r = self.begin_submit(jid)
+        if r["status"] == "check_portal":
+            raise ValueError(f"{jid}: an earlier submit attempt was never reconciled; read the portal first")
+
+    # outcomes ----------------------------------------------------
+    def mark_submitted(self, jid: str, confirmation: str, *, level: str = "portal") -> None:
+        super().mark_submitted(jid, confirmation)
+        with self.tx() as db:
+            j = self._row(db, jid)
+            if j.get("final_stage") != SUBMISSION_CONFIRMED or not j.get("evidence_level"):
+                self._meta(db, jid, final_stage=SUBMISSION_CONFIRMED, evidence_level=j.get("evidence_level") or level)
+
+    def mark_uncertain(self, jid: str, why: str) -> None:
+        super().mark_uncertain(jid, why)
+        with self.tx() as db:
+            self._meta(db, jid, final_stage=SUBMISSION_UNCERTAIN)
+
+    def recover(self) -> dict:
+        out = super().recover()
+        if out["uncertain"]:
+            with self.tx() as db:
+                for jid in out["uncertain"]:
+                    self._meta(db, jid, final_stage=SUBMISSION_UNCERTAIN)
+        return out
+
+    def resolve_check(self, jid: str, *, found_on_portal: bool, evidence: str = "") -> str:
+        """needs_check is resolved only by reading the portal. Not found -> the evidence is stored as
+        prior_attempt_cleared, which is what allows one new attempt."""
+        if found_on_portal:
+            self.mark_submitted(jid, evidence or "found in portal application list")
+            return "submitted"
+        ev = evidence or "portal application list checked: not found"
+        with self.tx() as db:
+            self._set(db, jid, "ready_to_submit", "not found on portal", reason="", clicked=0,
+                      prior_attempt_cleared=ev[:300], final_stage="")
+        return "ready_to_submit"
+
+    def candidate_reported(self, jid: str, note: str, *, level: str = "candidate_reported") -> str:
+        """The candidate says they submitted it themselves. A claim to verify, not proof: needs_check,
+        resolved by reading the portal's application list (never resubmitted meanwhile)."""
+        j = self.get(jid)
+        if j is None or j["state"] in ("submitted", "excluded", "needs_check"):
+            return j["state"] if j else "unknown"
+        with self.tx() as db:
+            if j["state"] in ("eligible", "ready_to_submit", "retry_wait", "in_progress", "discovered"):
+                self._set(db, jid, "blocked_human", "candidate reported", reason="hold:verify", lease_until="",
+                          action=ACTIONS["check_portal"])
+            self._set(db, jid, "needs_check", note[:200], reason=f"uncertain:{level}", lease_until="",
+                      action=ACTIONS["check_portal"], final_stage=SUBMISSION_UNCERTAIN,
+                      evidence_level=level)
+        return "needs_check"
+
+    # migration ---------------------------------------------------
+    def migrate_finalization(self, dry: bool = False) -> dict:
+        """Idempotent backfill of final_stage / evidence_level from existing states. Only empty
+        fields are written; states, ids and confirmations are never touched."""
+        plan: dict[str, list[str]] = {}
+        rows = self.all()
+        upd = []
+        for j in rows:
+            f = {}
+            s = j["state"]
+            if s == "submitted" and not j.get("final_stage"):
+                f["final_stage"] = SUBMISSION_CONFIRMED
+            if s == "submitted" and not j.get("evidence_level"):
+                c = j.get("confirmation") or ""
+                f["evidence_level"] = ("legacy" if c.startswith("legacy") else
+                                       "candidate_reported" if "board tick" in c or "applied herself" in c or "applied himself" in c else "portal")
+            if s == "needs_check" and not j.get("final_stage"):
+                f["final_stage"] = SUBMISSION_UNCERTAIN
+            if s == "in_progress" and int(j.get("clicked") or 0) and not j.get("final_stage"):
+                f["final_stage"] = SUBMIT_ATTEMPTED
+            if f:
+                upd.append((j["id"], f))
+                for k, v in f.items():
+                    plan.setdefault(f"{k}={v}", []).append(j["id"])
+        if not dry and upd:
+            with self.tx() as db:
+                for jid, f in upd:
+                    self._meta(db, jid, **f)
+        return {k: len(v) for k, v in plan.items()}
+
+    def rollback_finalization(self) -> int:
+        """Remove every finalization field (the engine-only view of the snapshot). States untouched."""
+        n = 0
+        with self.tx() as db:
+            for j in [dict(r) for r in db.execute("SELECT * FROM jobs")]:
+                if any(j.get(f) not in (None, "") for f in FINAL_FIELDS):
+                    db.execute(f"UPDATE jobs SET {', '.join(f'{f}=NULL' for f in FINAL_FIELDS)} WHERE id=?", (j["id"],))
+                    n += 1
+        return n
 
 
 def submit_path_blocker(url: str, portal: str, *, browser_ok: bool, signed_in: tuple[str, ...] = (),
